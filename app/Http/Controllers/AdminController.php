@@ -31,21 +31,21 @@ class AdminController extends Controller
     }
 
      public function storeVideo(Request $request)
-{
-    $request->validate([
-        'video_url' => 'required'
-    ]);
+    {
+        $request->validate([
+            'video_url' => 'required'
+        ]);
 
-    Video::create([
-        'video_url' => $request->video_url
-    ]);
+        Video::create([
+            'video_url' => $request->video_url
+        ]);
 
-    return back()->with('success', 'Video added successfully!');
-}
+        return back()->with('success', 'Video added successfully!');
+    }
 
-public function viewVideo()
-{
-    $videos = Video::latest()->get();
-    return view('adminDashboard', compact('videos'));
-}
+    public function viewVideo()
+    {
+        $videos = Video::latest()->get();
+        return view('adminDashboard', compact('videos'));
+    }
 }
