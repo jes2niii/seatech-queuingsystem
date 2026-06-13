@@ -30,64 +30,65 @@ class TicketController extends Controller
     }
     
     public function login(Request $request)
-{
-    $credentials = $request->only('name', 'password');
+    {
+        $credentials = $request->only('name', 'password');
 
-    if (Auth::attempt($credentials)) {
-        $user = Auth::user();
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
 
-        if (strtolower($user->name) === 'admin') {
-            return redirect()->route('adminDashboard');
+            if (strtolower($user->name) === 'admin') {
+                return redirect()->route('adminDashboard');
+            }
+
+            return redirect()->route('registrationDashboard');
         }
 
-        return redirect()->route('registrationDashboard');
+        return back()->withErrors(['login' => 'Invalid name or password']);
     }
-
-    return back()->withErrors(['login' => 'Invalid name or password']);
-}
 
     public function generate(Request $request)
     {
          try {
-        $purpose = $request->purpose;
+            $purpose = $request->purpose;
 
-        // Assign prefix
-        $prefix = match (true) {
-            str_contains($purpose, 'ENROLLMENT') => 'E',
-            str_contains($purpose, 'CERTIFICATE') => 'R',
-            str_contains($purpose, 'INQUIRY') => 'I',
-            str_contains($purpose, 'CASHIER') => 'C',
-            default => 'X'
-        };
+            // Assign prefix
+            $prefix = match (true) {
+                str_contains($purpose, 'ENROLLMENT') => 'E',
+                str_contains($purpose, 'CERTIFICATE') => 'R',
+                str_contains($purpose, 'INQUIRY') => 'I',
+                str_contains($purpose, 'CASHIER') => 'C',
+                default => 'X'
+            };
 
-        // CRITICAL PART: prevent duplicates
-        $ticket = DB::transaction(function () use ($prefix, $purpose) {
+            // CRITICAL PART: prevent duplicates
+            $ticket = DB::transaction(function () use ($prefix, $purpose) {
 
-                $lastTicket = Ticket::where('prefix', $prefix)
-                ->orderByDesc('number')
-                ->first();
+                    $lastTicket = Ticket::where('prefix', $prefix)
+                    ->orderByDesc('number')
+                    ->first();
 
-            $nextNumber = $lastTicket ? $lastTicket->number + 1 : 1;
-            return Ticket::create([
-                'purpose'   => $purpose,
-                'prefix'    => $prefix,
-                'number'    => $nextNumber,
-                'ticket_no' => $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT),
-                'status'    => 'waiting',
-            ]);
-        });
+                $nextNumber = $lastTicket ? $lastTicket->number + 1 : 1;
+                return Ticket::create([
+                    'purpose'   => $purpose,
+                    'prefix'    => $prefix,
+                    'number'    => $nextNumber,
+                    'ticket_no' => $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT),
+                    'status'    => 'waiting',
+                ]);
+            });
 
-        return response()->json($ticket);
+            return response()->json($ticket);
         
         } catch (\Throwable $e) {
-        // return JSON error instead of HTML
-        return response()->json([
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ], 500);
+            // return JSON error instead of HTML
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
-    }
-     public function counterQueue()
+
+    public function counterQueue()
     {
         $tickets = Ticket::where('status', '!=', 'Done')
         ->orderBy('created_at', 'asc')
