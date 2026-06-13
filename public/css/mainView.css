@@ -1,0 +1,162 @@
+.mainBody {
+    background-color: #0E0057;  
+    padding: 1vh 1vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden; 
+}
+
+/* Top header layout */
+.top-header { 
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    /*margin-bottom: 0.5vh;*/
+}
+
+.companyName {
+    width: 67%;
+    color: #0E0057;
+    display: flex;           
+    align-items: center;    
+    gap: 15px;   
+    background-color: #FFFFFF;
+    padding: 0.5vh 1vw;
+    border-radius: 0;        /* no rounded corners */
+    justify-content: center;
+}
+
+.serve {
+    width: 31%;
+    color: #FFFFFF;
+    font-size: 40px;
+    Transform: scaleY(2.6);
+    display: inline-block; 
+    font-weight: bold;
+    display: flex;
+    align-items: center;  
+    justify-content: center;
+    font-weight: bolder;
+}
+
+.companyName img {
+    width: clamp(50px, 8vw, 120px);
+    height: auto;
+}
+
+.companyName p {
+    margin: 0;            
+    font-size: clamp(1rem, 2.5vw, 24px);       
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Table scales with viewport */
+table {
+    margin: auto; 
+    border-collapse: collapse;
+    width: 100%;
+    max-height: 50vh; /* use proportional height */
+}
+
+table tr td {
+    border: 1px solid #FFFFFF;
+}
+
+.tableInfo {
+    color: #FFFFFF;
+    text-align: center;
+}
+
+.left {
+    width: 70%;
+    background-color: #c2c1ca;
+}
+
+td.left {
+    text-align: center;      
+    vertical-align: middle;  
+}
+
+.right {
+    background-color: #FDCD23;
+    font-size: clamp(28px, 6vw, 70px);
+    font-weight: bold;
+    color: #0E0057;
+    text-align: center;
+    border: 2px solid #FFFFFF;
+}
+
+.rightName {
+    font-size: clamp(36px, 3.4vw, 38px);
+    font-weight: bold;
+    text-align: center;
+    background-color: #FFFFFF;
+    color: #0E0057;
+    border: 2px solid #0E0057;
+     width: 10%;
+}
+
+/* Clock at bottom */
+.clock-container {
+    background: #ffffff;
+    padding: 1% 2%;         
+    text-align: center;
+    border-top: 0.8vh solid #0E0057;
+    border-bottom: 0.8vh solid #0E0057;
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;        
+}
+
+.time {
+    font-size: calc(3vh + 1vw);  
+    font-weight: bold;
+    color: #0E0057;
+    line-height: 1;
+}
+
+.date {
+    font-size: calc(1.5vh + 0.5vw);
+    color: #0E0057;
+    font-weight: 600;
+    margin-top: 0.3vh;
+}
+
+
+/* Blink */
+@keyframes blinkText {
+    0%, 100% { color: #0E0057; }
+    50% { color: white; }
+}
+.blink {
+    animation: blinkText 0.5s infinite;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .top-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1vh;
+    }
+
+    .companyName, .serve {
+        width: 100%;
+        justify-content: center;
+    }
+
+    table {
+        max-height: none;
+        height: auto;
+    }
+
+    .clock-container {
+        width: 100%;
+    }
+}

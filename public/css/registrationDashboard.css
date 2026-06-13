@@ -1,0 +1,64 @@
+.mainBody {
+    background-color: #1a1464;
+    color: #000;
+}
+
+.sidebar {
+    background: #ffffff;
+    border-radius: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-panel {
+    background: #ffffff;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.header-box {
+    border: 2px solid #1a1464;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.time-box {
+    background: #ffc107;
+    font-weight: bold;
+     font-size: 40px;
+}
+
+.now-serving {
+    background: #1a1464;
+    color: #fff;
+    font-weight: bold;
+     font-size: 40px;
+}
+
+.ticket-number {
+    background: #e9ecef;
+    color: red;
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.ticket-table {
+    height: calc(100% - 220px);
+    overflow-y: auto;
+}
+
+.action-buttons button {
+    font-weight: bold;
+    height: 80px;
+}
+.ticket-row.table-active {
+    background-color: #cfe2ff;
+    font-weight: bold;
+}
+.btn-outline-warning:hover {
+    color: white;         
+    background-color: #ffc107; 
+    border-color: #ffc107;     
+}
+
