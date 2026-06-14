@@ -50,7 +50,7 @@ class User extends Authenticatable
      public function servingTicket()
     {
          return $this->hasOne(Ticket::class, 'served_by', 'name') 
-                ->where('status', 'serving')
+                ->where('status', 'Serving')
                 ->latest('id');
     }
 }

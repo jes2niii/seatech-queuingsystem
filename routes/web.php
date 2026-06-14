@@ -12,16 +12,16 @@ use App\Http\Controllers\AdminController;
 Route::get('/', [TicketController::class, 'dashboard'])
     ->middleware('auth')
     ->name('registrationDashboard');
-Route::get('/tickets/page', [TicketController::class, 'registrationDashboard']);
+Route::get('/tickets/page', [TicketController::class, 'registrationDashboard'])
+    ->middleware('auth');
  
+Route::get('/dashboard', function () {
+    return redirect('/');
+})->name('dashboard');
+
 Route::get('/userPurpose', function () {
     return view('userPurpose');
 });
-
-Route::get('/registrationDashboard', function () {
-    return view('registrationDashboard');
-})->name('registrationDashboard');
-
 
 Route::get('/accountLogin', function () {
     return view('accountLogin'); 
@@ -36,10 +36,10 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 
 Route::post('/ticket/generate', [TicketController::class, 'generate']);
-Route::get('/counter', [TicketController::class, 'counterQueue']);
 Route::post('/ticket/preview', [TicketController::class, 'preview']);
 
 Route::post('/tickets/action', [TicketController::class, 'action'])
+    ->middleware('auth')
     ->name('tickets.action');
 
 Route::get('/mainView', [TicketController::class, 'nowServing']);
@@ -62,13 +62,14 @@ Route::get('/adminDashboard', [TicketController::class, 'adminDashboard'])
     ->name('adminDashboard');
 
 
-Route::post('/admin/create-account', [AdminController::class, 'storeUser']);
-Route::post('/admin/videos/store', [AdminController::class, 'storeVideo']);
-
-Route::patch('/admin/videos/toggle/{id}', [TicketController::class, 'toggle'])->name('videos.toggle');
-
-Route::get('/admin/clear-queue', [TicketController::class, 'clearQueue'])->name('admin.clear.queue');
-Route::delete('/admin/videos/{video}', [TicketController::class, 'destroy']);
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::post('/admin/create-account', [AdminController::class, 'storeUser']);
+    Route::post('/admin/videos/store', [AdminController::class, 'storeVideo']);
+    Route::patch('/admin/videos/toggle/{id}', [TicketController::class, 'toggle'])->name('videos.toggle');
+    Route::get('/admin/clear-queue', [TicketController::class, 'clearQueue'])->name('admin.clear.queue');
+    Route::delete('/admin/videos/{video}', [TicketController::class, 'destroy']);
+    Route::delete('/admin/users/{user}', [AdminController::class, 'destroyUser'])->name('admin.users.destroy');
+});
 
 
 Route::get('/tickets/live', function () {

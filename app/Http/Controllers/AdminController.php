@@ -15,7 +15,7 @@ class AdminController extends Controller
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
-            'usertype' => 'required|in:regular,admin',
+            'usertype' => 'required|in:Regular,admin',
             'email_verified_at' => 'nullable|date',
         ]);
 
@@ -33,14 +33,29 @@ class AdminController extends Controller
      public function storeVideo(Request $request)
     {
         $request->validate([
-            'video_url' => 'required'
+            'video_url' => 'required|file|mimetypes:video/mp4,video/webm,video/ogg|max:204800',
         ]);
+
+        $file = $request->file('video_url');
+        $filename = time() . '_' . $file->getClientOriginalName();
+
+        $file->move(public_path('vid'), $filename);
 
         Video::create([
-            'video_url' => $request->video_url
+            'video_url' => $filename
         ]);
 
-        return back()->with('success', 'Video added successfully!');
+        return back()->with('success', 'Video uploaded successfully!');
+    }
+
+    public function destroyUser(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->withErrors(['delete' => 'You cannot delete yourself.']);
+        }
+
+        $user->delete();
+        return back()->with('success', 'User deleted successfully.');
     }
 
     public function viewVideo()

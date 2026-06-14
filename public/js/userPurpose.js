@@ -1,5 +1,13 @@
 let currentTicket = null;
 
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast-notification toast-' + type;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
         // Show popup and fetch preview ticket
         function showPopup(title) {
             document.getElementById('popupTitle').innerText = title;
@@ -43,35 +51,22 @@ let currentTicket = null;
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    alert("Error generating ticket: " + data.error);
+                    showToast('Error generating ticket: ' + data.error, 'error');
                     return;
                 }
 
                 closePopup();
 
                 // ----------------- Bluetooth Print -----------------
-                // Option 1: Using response page (recommended)
                 const printURL = `my.bluetoothprint.scheme://${window.location.origin}/ticket/print-response?ticket=${data.ticket_no}&purpose=${encodeURIComponent(data.purpose)}`;
-                window.location.href = printURL;
-                // Option 2: Inline direct data (if supported)
-                // const ticketText = encodeURIComponent(`Purpose: ${data.purpose}\nTicket No: ${data.ticket_no}\nThank you!`);
-                // const printURL = `my.bluetoothprint.scheme://data=${ticketText}&copies=1`;
 
-                // Open Bluetooth Print app
-                window.location.href = printURL;
+                // Trigger Bluetooth print via hidden iframe (no page redirect)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = printURL;
+                document.body.appendChild(iframe);
 
-                // Optional: refresh tickets table if needed
-                refreshTickets();
+                showToast('Ticket printed successfully!', 'success');
             })
-            .catch(err => console.error(err));
-        }
-
-        // Refresh ticket table (if you have a table to show current tickets)
-        function refreshTickets() {
-            fetch('/registration/tickets/refresh')
-                .then(res => res.text())
-                .then(html => {
-                    const table = document.getElementById('ticketTable');
-                    if (table) table.innerHTML = html;
-                });
+            .catch(err => showToast('Print failed: ' + err.message, 'error'));
         }

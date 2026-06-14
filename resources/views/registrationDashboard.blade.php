@@ -67,7 +67,7 @@
                     <tr class="ticket-row"
                         data-ticket-id="{{ $ticket->id }}"
                         style="cursor:pointer">
-                        <td>{{ $ticket->id }}</td>
+                        <td>{{ $loop->iteration }}</td>
                         <td><b>{{ $ticket->ticket_no }}</b> - {{ $ticket->purpose }}</td>
                         <td>{{ $ticket->status }}</td>
                         <td><b>{{ $ticket->served_by ?? 'NONE' }}</b></td>

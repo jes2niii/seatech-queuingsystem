@@ -35,9 +35,7 @@
     width: 31%;
     color: #FFFFFF;
     font-size: 40px;
-    Transform: scaleY(2.6);
-    display: inline-block; 
-    font-weight: bold;
+    transform: scaleY(2.6);
     display: flex;
     align-items: center;  
     justify-content: center;
@@ -136,6 +134,37 @@ td.left {
 }
 .blink {
     animation: blinkText 0.5s infinite;
+}
+
+/* Pulse animation */
+@keyframes pulseScale {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+.pulse {
+    animation: pulseScale 1.5s ease-out;
+}
+
+/* No-video placeholder */
+.no-video-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #555;
+    gap: 10px;
+}
+.no-video-placeholder img {
+    width: clamp(80px, 12vw, 180px);
+    opacity: 0.5;
+}
+.no-video-placeholder p {
+    font-size: clamp(14px, 1.5vw, 20px);
+    font-weight: 600;
+    color: #777;
+    margin: 0;
 }
 
 /* Mobile adjustments */

@@ -24,29 +24,36 @@
             <div class="tableInfo">
                 <table>
                     <tr>
-                        <td class="left" rowspan="5">
-                           <video id="tvPlayer" width="580" autoplay muted playsinline style="width:100%; height:100%; object-fit:contain;" controls preload="auto" >
-                                Your browser does not support the video tag.
-                            </video>
-                        </td>
-                        @php $first = true; @endphp
-                           @foreach ($users as $user)
-                            @if ($user->usertype === 'Regular')
-                                @if (!$first)
-                                    </tr><tr>
-                                @endif
-                                <td class="rightName">{{ $user->name }}</td>
-                                <td class="right" id="serving-{{ $user->id }}">
-                                    {{ $user->servingTicket ? $user->servingTicket->ticket_no : 'NONE' }}
-                                </td>
-                                @php $first = false; @endphp
+                        @php $rowCount = max(1, $users->where('usertype', 'Regular')->count()); @endphp
+                        <td class="left" rowspan="{{ $rowCount }}">
+                           @if($videos->isNotEmpty())
+                               <video id="tvPlayer" width="580" playsinline style="width:100%; height:100%; object-fit:contain;" preload="auto">
+                                    Your browser does not support the video tag.
+                                </video>
+                            @else
+                                <div class="no-video-placeholder">
+                                    <img src="/img/seatechLogo.png" alt="SEATECH">
+                                    <p>No video content</p>
+                                </div>
                             @endif
-                        @endforeach
+                        </td>
+                        @php $regularUsers = $users->where('usertype', 'Regular'); @endphp
+                           @forelse ($regularUsers as $user)
+                                 @unless ($loop->first)
+                                     </tr><tr>
+                                 @endunless
+                                 <td class="rightName">{{ $user->name }}</td>
+                                 <td class="right" id="serving-{{ $user->id }}">
+                                     {{ $user->servingTicket ? $user->servingTicket->ticket_no : 'NONE' }}
+                                 </td>
+                         @empty
+                                 <td colspan="2" class="right">No staff available</td>
+                         @endforelse
 
                     </tr>
                 </table>
             </div>
-           
+
             <audio id="tvSound" src="{{ asset('sounds/call.mp3') }}" preload="auto"></audio>
 
             {{-- <div class="clock-container"> 
@@ -74,16 +81,21 @@
         const maxPlays = 3;
         const audio = document.getElementById('tvSound');
 
-        // Unlock audio on first user interaction
-        document.addEventListener('click', function unlockAudio() {
+        const tvPlayer = document.getElementById("tvPlayer");
+
+        // Start audio + video on first user interaction
+        document.addEventListener('click', function unlockAll() {
             if (audio) {
                 audio.play().then(() => {
                     audio.pause();
                     audio.currentTime = 0;
-                    console.log('Audio unlocked');
                 }).catch(()=>{});
             }
-            document.removeEventListener('click', unlockAudio);
+            if (tvPlayer) {
+                tvPlayer.volume = 0.25;
+                tvPlayer.play().catch(() => {});
+            }
+            document.removeEventListener('click', unlockAll);
         });
 
         // Loop only 3 times
@@ -103,12 +115,6 @@
             audio.currentTime = 0;
             audio.play();
         }
-    </script>
-
-    <script>
-        const video = document.getElementById("tvPlayer");
-        video.muted = false;
-        video.volume = 25;
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>

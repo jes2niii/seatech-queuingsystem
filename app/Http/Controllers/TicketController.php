@@ -7,8 +7,9 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller; 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+
 use App\Models\Video;
+use App\Events\TicketCalled;
 use Illuminate\Support\Facades\File;
 
 class TicketController extends Controller
@@ -22,30 +23,13 @@ class TicketController extends Controller
             ->get();
 
         $nowServing = Ticket::where('served_by', $user->name)
-            ->where('status', 'Serving', 'For Payment')
-            ->latest()
+            ->whereIn('status', ['Serving', 'For Payment'])
+            ->latest('id')
             ->first();
 
         return view('registrationDashboard', compact('tickets', 'nowServing'));
     }
     
-    public function login(Request $request)
-    {
-        $credentials = $request->only('name', 'password');
-
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            if (strtolower($user->name) === 'admin') {
-                return redirect()->route('adminDashboard');
-            }
-
-            return redirect()->route('registrationDashboard');
-        }
-
-        return back()->withErrors(['login' => 'Invalid name or password']);
-    }
-
     public function generate(Request $request)
     {
          try {
@@ -60,11 +44,11 @@ class TicketController extends Controller
                 default => 'X'
             };
 
-            // CRITICAL PART: prevent duplicates
             $ticket = DB::transaction(function () use ($prefix, $purpose) {
 
                     $lastTicket = Ticket::where('prefix', $prefix)
                     ->orderByDesc('number')
+                    ->lockForUpdate()
                     ->first();
 
                 $nextNumber = $lastTicket ? $lastTicket->number + 1 : 1;
@@ -73,7 +57,7 @@ class TicketController extends Controller
                     'prefix'    => $prefix,
                     'number'    => $nextNumber,
                     'ticket_no' => $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT),
-                    'status'    => 'waiting',
+                    'status'    => 'Waiting',
                 ]);
             });
 
@@ -137,6 +121,7 @@ class TicketController extends Controller
                     'served_by' => auth()->user()->name,
                     'called_at' => now(),
                 ]);
+                broadcast(new TicketCalled($ticket->fresh()))->toOthers();
                 break;
 
             case 'payment':
@@ -193,18 +178,18 @@ class TicketController extends Controller
 
     public function dashboard()
     {
-        $tickets = Ticket::whereIn('status', ['waiting', 'serving', 'For Payment'])
+        $tickets = Ticket::whereIn('status', ['Waiting', 'Serving', 'For Payment'])
             ->orderBy('created_at')
             ->get();
 
-        $nowServing = Ticket::where('status', 'serving', 'For Payment')
+        $nowServing = Ticket::whereIn('status', ['Serving', 'For Payment'])
             ->where('served_by', Auth::user()->name)
             ->orderBy('called_at', 'desc')
             ->first();
 
             $user = Auth::user();
 
-        if ($user->name === 'admin') {
+        if ($user->usertype === 'admin') {
             return redirect()->route('adminDashboard');
         }
 
@@ -215,7 +200,8 @@ class TicketController extends Controller
     public function adminDashboard()
     {
         $videos = Video::latest()->get();
-        return view('adminDashboard', compact('videos'));
+        $users = User::latest()->get();
+        return view('adminDashboard', compact('videos', 'users'));
     }
 
     public function clearQueue()

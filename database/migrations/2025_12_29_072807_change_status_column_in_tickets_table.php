@@ -19,7 +19,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->enum('status', ['Waiting', 'Serving', 'Done'])->change();
+            $table->enum('status', ['waiting', 'serving', 'done'])->change();
         });
     }
 };

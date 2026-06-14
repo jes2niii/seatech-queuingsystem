@@ -1,10 +1,12 @@
  //blink and sound of Ticket
  let previousServing = {}; // store previous tickets
+ let consecutiveErrors = 0;
 
         function refreshServing() {
             fetch('/tv/serving-status')
                 .then(res => res.json())
                 .then(data => {
+                    consecutiveErrors = 0;
                     for (const id in data) {
                         let cell = document.getElementById('serving-' + id);
                         if (!cell) continue;
@@ -22,16 +24,20 @@
                         previousServing[id] = newTicket;
                     }
                 })
-                .catch(err => console.error(err));
+                .catch(err => {
+                    consecutiveErrors++;
+                    if (consecutiveErrors >= 5) {
+                        location.reload();
+                    }
+                });
         }
 
-        function triggerBlink(cell) {
-            cell.classList.add('blink');
+         function triggerBlink(cell) {
+            cell.classList.add('blink', 'pulse');
 
-            // Remove blink after 3 seconds
             setTimeout(() => {
-                cell.classList.remove('blink');
-            }, 8000);
+                cell.classList.remove('blink', 'pulse');
+            }, 3000);
 
             playSound3Times();
         }
@@ -44,20 +50,32 @@
         //For Video
         let index = 0;
         const player = document.getElementById('tvPlayer');
+        if (!player) { videos = []; }
 
-        function playNext() {
-            if (videos.length === 0) return; // no videos
+        function loadNext() {
+            if (videos.length === 0) return;
+            if (!player) return;
             player.src = videos[index];
             player.load();
-            player.play().catch(err => console.log("Autoplay blocked:", err));
 
-            index = (index + 1) % videos.length; // loop to first video
+            index = (index + 1) % videos.length;
         }
 
-        // Play first video on page load
-        playNext();
+        function playNext() {
+            if (videos.length === 0) return;
+            if (!player) return;
+            player.play().catch(err => console.log("Playback error:", err));
+        }
 
-        // When current video ends, play next
-        player.addEventListener('ended', playNext);
+        // Load first video on page load
+        loadNext();
+
+        // When current video ends, load and play next
+        if (player) {
+            player.addEventListener('ended', () => {
+                loadNext();
+                playNext();
+            });
+        }
 
         

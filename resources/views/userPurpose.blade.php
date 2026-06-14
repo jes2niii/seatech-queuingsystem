@@ -46,7 +46,7 @@
 
                 <div class="modal-buttons">
                     <button class="btn-cancel" onclick="closePopup()">← Cancel</button>
-                    <button class="btn-continue" onclick="confirmTicket(); setTimeout(() => location.reload(), 2000);">OKAY →</button>
+                    <button class="btn-continue" onclick="confirmTicket()">OKAY →</button>
                 </div>
             </div>
         </div>
@@ -64,6 +64,8 @@
 </div>
 
 </div>
+
+<div id="toast" class="toast-notification"></div>
 
 <script src="{{ asset('js/userPurpose.js') }}"></script>
 
