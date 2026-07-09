@@ -108,6 +108,8 @@
                             <select name="usertype" class="form-control" required>
                                 <option value="">-- Select User Type --</option>
                                 <option value="Regular">Regular</option>
+                                <option value="cashier">Cashier</option>
+                                <option value="Certificate">Certificate</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>

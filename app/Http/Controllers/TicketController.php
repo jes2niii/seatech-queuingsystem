@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Video;
 use App\Events\TicketCalled;
 use Illuminate\Support\Facades\File;
+use App\Models\Registration;
 
 class TicketController extends Controller
 {
@@ -18,22 +19,23 @@ class TicketController extends Controller
     {
         $user = Auth::user();
 
-        $tickets = Ticket::whereIn('status', ['Waiting', 'Serving', 'For Payment'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $tickets = $this->getQueueTicketsForUser($user);
 
         $nowServing = Ticket::where('served_by', $user->name)
             ->whereIn('status', ['Serving', 'For Payment'])
             ->latest('id')
             ->first();
 
-        return view('registrationDashboard', compact('tickets', 'nowServing'));
+        $registrations = Registration::with('ticket')->latest()->get();
+
+        return view('registrationDashboard', compact('tickets', 'nowServing', 'registrations'));
     }
     
     public function generate(Request $request)
     {
-         try {
+             try {
             $purpose = $request->purpose;
+            $registrationId = $request->registration_id;
 
             // Assign prefix
             $prefix = match (true) {
@@ -44,7 +46,7 @@ class TicketController extends Controller
                 default => 'X'
             };
 
-            $ticket = DB::transaction(function () use ($prefix, $purpose) {
+            $ticket = DB::transaction(function () use ($prefix, $purpose, $registrationId) {
 
                     $lastTicket = Ticket::where('prefix', $prefix)
                     ->orderByDesc('number')
@@ -53,11 +55,12 @@ class TicketController extends Controller
 
                 $nextNumber = $lastTicket ? $lastTicket->number + 1 : 1;
                 return Ticket::create([
-                    'purpose'   => $purpose,
-                    'prefix'    => $prefix,
-                    'number'    => $nextNumber,
-                    'ticket_no' => $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT),
-                    'status'    => 'Waiting',
+                    'purpose'         => $purpose,
+                    'prefix'          => $prefix,
+                    'number'          => $nextNumber,
+                    'ticket_no'       => $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT),
+                    'status'          => 'Waiting',
+                    'registration_id' => $registrationId,
                 ]);
             });
 
@@ -72,15 +75,6 @@ class TicketController extends Controller
         }
     }
 
-    public function counterQueue()
-    {
-        $tickets = Ticket::where('status', '!=', 'Done')
-        ->orderBy('created_at', 'asc')
-        ->get();
-
-        return view('counter.queue', compact('tickets'));
-    }
-
     public function preview(Request $request)
     {
         $purpose = $request->purpose;
@@ -93,11 +87,16 @@ class TicketController extends Controller
             default => 'X'
         };
 
-        $lastTicket = Ticket::where('prefix', $prefix)
-            ->orderByDesc('number')
-            ->first();
+        // Acquire a row lock for this prefix to avoid concurrent previews
+        // colliding with `generate`. The lock is released when this request ends.
+        $nextNumber = DB::transaction(function () use ($prefix) {
+            $lastTicket = Ticket::where('prefix', $prefix)
+                ->orderByDesc('number')
+                ->lockForUpdate()
+                ->first();
 
-        $nextNumber = $lastTicket ? $lastTicket->number + 1 : 1;
+            return $lastTicket ? $lastTicket->number + 1 : 1;
+        });
 
         $ticket_no = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
@@ -112,33 +111,53 @@ class TicketController extends Controller
 
     public function action(Request $request)
     {
+        $user = Auth::user();
         $ticket = Ticket::findOrFail($request->ticket_id);
+
+        // Cashier and Certificate users can only call, done, cancel — no payment
+        $userType = strtolower((string) ($user->usertype ?? ''));
+        if (in_array($userType, ['cashier', 'certificate'], true) && $request->action === 'payment') {
+            return back()->with('error', ucfirst($userType) . ' users cannot perform payment actions.');
+        }
 
         switch ($request->action) {
             case 'call':
                 $ticket->update([
-                    'status' => 'Serving',
+                    'status' => Ticket::STATUS_SERVING,
                     'served_by' => auth()->user()->name,
                     'called_at' => now(),
                 ]);
                 broadcast(new TicketCalled($ticket->fresh()))->toOthers();
+
+                if ($request->expectsJson()) {
+                    $ticket->load('registration');
+                    $nextTicket = Ticket::where('status', Ticket::STATUS_WAITING)
+                        ->orderBy('created_at', 'asc')
+                        ->first();
+
+                    return response()->json([
+                        'ticket' => $ticket,
+                        'registration' => $ticket->registration,
+                        'next_ticket_id' => $nextTicket?->id,
+                    ]);
+                }
                 break;
 
             case 'payment':
             $ticket->update([
-                'status' => 'For Payment',
+                'status' => Ticket::STATUS_FOR_PAYMENT,
             ]);
             break;
 
             case 'done':
                 $ticket->update([
-                    'status' => 'Done',
+                    'status' => Ticket::STATUS_DONE,
                 ]);
                 break;
 
             case 'cancel':
                 $ticket->update([
-                    'status' => 'Cancelled',
+                    'status' => Ticket::STATUS_CANCELLED,
                 ]);
                 break;
         }
@@ -178,23 +197,61 @@ class TicketController extends Controller
 
     public function dashboard()
     {
-        $tickets = Ticket::whereIn('status', ['Waiting', 'Serving', 'For Payment'])
-            ->orderBy('created_at')
-            ->get();
-
-        $nowServing = Ticket::whereIn('status', ['Serving', 'For Payment'])
-            ->where('served_by', Auth::user()->name)
-            ->orderBy('called_at', 'desc')
-            ->first();
-
-            $user = Auth::user();
+        $user = Auth::user();
 
         if ($user->usertype === 'admin') {
             return redirect()->route('adminDashboard');
         }
 
-        return view('registrationDashboard', compact('tickets','nowServing'));
+        $tickets = $this->getQueueTicketsForUser($user);
 
+        $nowServing = Ticket::where('served_by', $user->name)
+            ->whereIn('status', ['Serving', 'For Payment'])
+            ->latest('id')
+            ->first();
+
+        $registrations = Registration::with('ticket')->latest()->get();
+
+        return view('registrationDashboard', compact('tickets', 'nowServing', 'registrations'));
+    }
+
+    /**
+     * Get the queue tickets appropriate for the logged-in user.
+     *  - Cashier users see:
+     *      - C-prefix tickets with status in (Waiting, Serving, For Payment)
+     *      - Registration tickets (E/I) that are Done
+     *  - Certificate users see:
+     *      - R-prefix tickets with status in (Waiting, Serving, For Payment)
+     *  - Other staff see all active tickets (Waiting, Serving, For Payment)
+     */
+    private function getQueueTicketsForUser($user)
+    {
+        $query = Ticket::query()->orderBy('created_at', 'asc');
+
+        if (!$user) {
+            return $query->whereIn('status', ['Waiting', 'Serving', 'For Payment'])->get();
+        }
+
+        $userType = strtolower((string) $user->usertype);
+
+        if ($userType === 'cashier') {
+            $query->where(function ($q) {
+                $q->where(function ($q1) {
+                    $q1->where('prefix', 'C')
+                       ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+                })->orWhere(function ($q2) {
+                    $q2->whereIn('prefix', ['E', 'I'])
+                       ->where('status', 'Done');
+                });
+            });
+        } elseif ($userType === 'certificate') {
+            $query->where('prefix', 'R')
+                  ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+        } else {
+            $query->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+        }
+
+        return $query->get();
     }
 
     public function adminDashboard()

@@ -5,85 +5,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <title>Main View</title>
-
+    <title>Now Serving | SEATECH</title>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="mainBody">
+    <div class="tv-body">
 
-            <div class="top-header">
-                <div class="companyName">
-                    <img src="/img/seatechLogo.png" alt="Logo">
-                    <p>SEATECH MARITIME TRAINING AND <br>ASSESSMENT CENTER INC,. LEGAZPI <br> Queueing System</p>
+        <header class="tv-header">
+            <div class="tv-brand">
+                <img src="/img/seatechLogo.png" alt="SEATECH">
+                <div class="tv-brand-text">
+                    <h1>SEATECH Maritime Training &amp; Assessment Center Inc.</h1>
+                    <p>Queueing System &middot; Legazpi</p>
                 </div>
-                <div class="serve">NOW SERVING!</div>
             </div>
+            <div class="tv-now-serving-badge">NOW SERVING</div>
+        </header>
 
-            <div class="tableInfo">
-                <table>
-                    <tr>
-                        @php $rowCount = max(1, $users->where('usertype', 'Regular')->count()); @endphp
-                        <td class="left" rowspan="{{ $rowCount }}">
-                           @if($videos->isNotEmpty())
-                               <video id="tvPlayer" width="580" playsinline style="width:100%; height:100%; object-fit:contain;" preload="auto">
-                                    Your browser does not support the video tag.
-                                </video>
-                            @else
-                                <div class="no-video-placeholder">
-                                    <img src="/img/seatechLogo.png" alt="SEATECH">
-                                    <p>No video content</p>
+        <main class="tv-main">
+
+            <section class="tv-panel">
+                <div class="tv-panel-header">
+                    <i class="bi bi-camera-reels-fill"></i> Promotional Content
+                </div>
+                <div class="tv-panel-body">
+                    @if($videos->isNotEmpty())
+                        <video id="tvPlayer" class="tv-video" playsinline preload="auto">
+                            Your browser does not support the video tag.
+                        </video>
+                    @else
+                        <div class="no-video-placeholder">
+                            <img src="/img/seatechLogo.png" alt="SEATECH">
+                            <p>No video content available</p>
+                        </div>
+                    @endif
+                </div>
+            </section>
+
+            <section class="tv-panel">
+                <div class="tv-panel-header">
+                    <i class="bi bi-megaphone-fill"></i> Currently Being Served
+                </div>
+                <div class="tv-panel-body">
+                    @php
+                        $regularUsers = $users->whereIn('usertype', ['Regular', 'cashier', 'Certificate']);
+                    @endphp
+                    <div class="tv-serving-list">
+                        @forelse ($regularUsers as $user)
+                            <div class="tv-serving-item" id="serving-row-{{ $user->id }}">
+                                <div class="tv-serving-name">{{ $user->name }}</div>
+                                <div class="tv-serving-ticket" id="serving-{{ $user->id }}">
+                                    {{ $user->servingTicket ? $user->servingTicket->ticket_no : '—' }}
                                 </div>
-                            @endif
-                        </td>
-                        @php $regularUsers = $users->where('usertype', 'Regular'); @endphp
-                           @forelse ($regularUsers as $user)
-                                 @unless ($loop->first)
-                                     </tr><tr>
-                                 @endunless
-                                 <td class="rightName">{{ $user->name }}</td>
-                                 <td class="right" id="serving-{{ $user->id }}">
-                                     {{ $user->servingTicket ? $user->servingTicket->ticket_no : 'NONE' }}
-                                 </td>
-                         @empty
-                                 <td colspan="2" class="right">No staff available</td>
-                         @endforelse
+                            </div>
+                        @empty
+                            <div class="tv-serving-empty">No staff available at the moment.</div>
+                        @endforelse
+                    </div>
+                </div>
+            </section>
 
-                    </tr>
-                </table>
-            </div>
+        </main>
 
-            <audio id="tvSound" src="{{ asset('sounds/call.mp3') }}" preload="auto"></audio>
-
-            {{-- <div class="clock-container"> 
-                <div id="time" class="time">11:05:30</div>
-                <div id="date" class="date">Monday, December 08, 2025</div>
-            </div>--}}
-            <script src="{{ asset('js/clock.js') }}"></script>
+        <div class="tv-clock">
+            <div class="tv-clock-time" id="tvTime">--:--:--</div>
+            <div class="tv-clock-date" id="tvDate">—</div>
         </div>
+
+        <audio id="tvSound" src="{{ asset('sounds/call.mp3') }}" preload="auto"></audio>
     </div>
 
     <script>
-        // Get the videos from the database
         let videos = [
             @foreach($videos as $video)
                 "{{ asset('vid/' . $video) }}",
             @endforeach
         ];
-
     </script>
-
     <script src="{{ asset('js/mainView.js') }}"></script>
 
-   <script>
+    <script>
         let playCount = 0;
         const maxPlays = 3;
         const audio = document.getElementById('tvSound');
-
         const tvPlayer = document.getElementById("tvPlayer");
 
-        // Start audio + video on first user interaction
         document.addEventListener('click', function unlockAll() {
             if (audio) {
                 audio.play().then(() => {
@@ -98,26 +103,40 @@
             document.removeEventListener('click', unlockAll);
         });
 
-        // Loop only 3 times
         audio.addEventListener('ended', () => {
             playCount++;
             if (playCount < maxPlays) {
                 audio.currentTime = 0;
                 audio.play();
             } else {
-                playCount = 0; // reset for next ticket call
+                playCount = 0;
             }
         });
 
-        // Call this when a new number is served
         function playSound3Times() {
             playCount = 0;
             audio.currentTime = 0;
             audio.play();
         }
+
+        // Clock
+        function updateTvClock() {
+            const now = new Date();
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let s = now.getSeconds();
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            const pad = (n) => String(n).padStart(2, '0');
+            document.getElementById('tvTime').textContent =
+                pad(h) + ':' + pad(m) + ':' + pad(s) + ' ' + ampm;
+            const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            document.getElementById('tvDate').textContent =
+                days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+        }
+        setInterval(updateTvClock, 1000);
+        updateTvClock();
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 </body>
-
 </html>

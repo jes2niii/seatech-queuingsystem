@@ -15,7 +15,7 @@ class AdminController extends Controller
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6',
-            'usertype' => 'required|in:Regular,admin',
+            'usertype' => 'required|in:Regular,cashier,Certificate,admin',
             'email_verified_at' => 'nullable|date',
         ]);
 

@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\RegistrationController;
 
 
 Route::get('/', [TicketController::class, 'dashboard'])
@@ -37,6 +38,9 @@ require __DIR__.'/auth.php';
 
 Route::post('/ticket/generate', [TicketController::class, 'generate']);
 Route::post('/ticket/preview', [TicketController::class, 'preview']);
+Route::post('/registration/store', [RegistrationController::class, 'store']);
+Route::get('/registration/{registration}', [RegistrationController::class, 'show'])
+    ->middleware('auth');
 
 Route::post('/tickets/action', [TicketController::class, 'action'])
     ->middleware('auth')
@@ -73,10 +77,37 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 
 Route::get('/tickets/live', function () {
-    $tickets = \App\Models\Ticket::whereIn('status', ['Waiting', 'Serving', 'For Payment'])
-            ->orderBy('created_at', 'asc')
-            ->get();
-    return view('profile.partials.ticket_rows', compact('tickets'));
-});
+    $user = \Illuminate\Support\Facades\Auth::user();
+    $query = \App\Models\Ticket::query()->orderBy('created_at', 'asc');
 
+    if ($user) {
+        $userType = strtolower((string) $user->usertype);
+
+        if ($userType === 'cashier') {
+            $query->where(function ($q) {
+                $q->where(function ($q1) {
+                    $q1->where('prefix', 'C')
+                       ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+                })->orWhere(function ($q2) {
+                    $q2->whereIn('prefix', ['E', 'I'])
+                       ->where('status', 'Done');
+                });
+            });
+        } elseif ($userType === 'certificate') {
+            $query->where('prefix', 'R')
+                  ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+        } else {
+            $query->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+        }
+    } else {
+        $query->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+    }
+
+    $tickets = $query->get();
+    return view('profile.partials.ticket_rows', compact('tickets'));
+})->middleware('auth');
+
+Route::get('/ticket/print-view', function () {
+    return view('ticket.print');
+});
 Route::get('/ticket/print-response', [App\Http\Controllers\TicketController::class, 'printResponse']);

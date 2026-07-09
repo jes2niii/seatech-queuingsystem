@@ -1,0 +1,24 @@
+{
+    "name": "Seatech Queueing System",
+    "short_name": "Seatech Q",
+    "description": "Seatech Maritime Training & Assessment Center - Queue Management System",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0E0057",
+    "theme_color": "#0E0057",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/pwa-icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/pwa-icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
