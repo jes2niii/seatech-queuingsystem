@@ -27,7 +27,9 @@ class RegistrationController extends Controller
             'email'            => 'required|email|max:255',
             'contact_no'       => ['required', 'string', 'max:50', 'regex:/^[0-9+\-\s()]+$/'],
             'rank'             => 'nullable|string|max:100',
+            'course'           => 'nullable|string|max:100',
             'contact_person'   => 'nullable|string|max:255',
+            'relationship'     => 'nullable|string|max:100',
             'contact_mobile'   => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-\s()]+$/'],
         ]);
 

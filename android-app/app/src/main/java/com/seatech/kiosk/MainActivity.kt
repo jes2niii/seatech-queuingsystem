@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
@@ -19,6 +20,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var errorOverlay: View
     private lateinit var btnRetry: Button
     private lateinit var btnOpenSettings: Button
+    private lateinit var errorDetail: TextView
 
     private var pendingTicket: String? = null
     private var pendingPurpose: String? = null
@@ -53,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         errorOverlay = findViewById(R.id.errorOverlay)
         btnRetry = findViewById(R.id.btnRetry)
         btnOpenSettings = findViewById(R.id.btnOpenSettings)
+        errorDetail = findViewById(R.id.errorDetail)
 
         configureWebView()
         wireErrorOverlay()
@@ -113,7 +117,11 @@ class MainActivity : AppCompatActivity() {
             ) {
                 super.onReceivedError(view, errorCode, description, failingUrl)
                 loadingProgress.visibility = View.GONE
-                showErrorOverlay()
+                showErrorOverlay(
+                    code = errorCode,
+                    description = description,
+                    url = failingUrl,
+                )
             }
         }
     }
@@ -125,22 +133,39 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showErrorOverlay() {
+    private fun showErrorOverlay(code: Int = -1, description: String? = null, url: String? = null) {
         errorOverlay.visibility = View.VISIBLE
+        val detail = buildString {
+            if (url != null) append("URL: ").append(url).append('\n')
+            if (code >= 0) append("Code: ").append(code)
+            if (description != null) {
+                if (isNotEmpty()) append(" • ")
+                append(description)
+            }
+        }
+        if (detail.isNotEmpty()) {
+            errorDetail.text = detail
+            errorDetail.visibility = View.VISIBLE
+        } else {
+            errorDetail.visibility = View.GONE
+        }
     }
 
     private fun hideErrorOverlay() {
         errorOverlay.visibility = View.GONE
+        errorDetail.visibility = View.GONE
     }
 
     private fun loadConfiguredUrl() {
         hideErrorOverlay()
         if (!isNetworkAvailable()) {
-            showErrorOverlay()
+            showErrorOverlay(
+                description = "No active internet connection detected",
+            )
             return
         }
         loadingProgress.visibility = View.VISIBLE
-        webView.loadUrl(config.serverUrl)
+        webView.loadUrl(Uri.parse(config.serverUrl).toString())
     }
 
     private fun isNetworkAvailable(): Boolean {
@@ -148,8 +173,7 @@ class MainActivity : AppCompatActivity() {
             ?: return true
         val network = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(network) ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     private fun printTicket(ticketNo: String, purpose: String) {
@@ -185,8 +209,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 val js = when (result) {
                     is BluetoothPrintService.PrintResult.Success ->
-                        "showToast('${jsString(getString(R.string.print_success))}','success');" +
-                            "window.KioskPrint && KioskPrint.onPrintSuccess && KioskPrint.onPrintSuccess();"
+                        "showToast('${jsString(getString(R.string.print_success))}','success')"
                     is BluetoothPrintService.PrintResult.Cancelled ->
                         "showToast('${jsString(getString(R.string.print_cancelled))}','info')"
                     is BluetoothPrintService.PrintResult.Error -> {
@@ -236,6 +259,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         printService.cancel()
+        // Clean up WebView to prevent memory leaks from JS interface lambdas
+        // holding an implicit reference to this Activity.
+        webView.stopLoading()
+        webView.loadUrl("about:blank")
+        webView.removeJavascriptInterface("KioskPrint")
+        webView.destroy()
         super.onDestroy()
     }
 

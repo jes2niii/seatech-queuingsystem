@@ -47,7 +47,9 @@
                 </div>
                 <div class="tv-panel-body">
                     @php
-                        $regularUsers = $users->whereIn('usertype', ['Regular', 'cashier', 'Certificate']);
+                        $regularUsers = $users->filter(function ($user) {
+                            return in_array(strtolower((string) $user->usertype), ['regular', 'cashier', 'releasing'], true);
+                        })->values();
                     @endphp
                     <div class="tv-serving-list">
                         @forelse ($regularUsers as $user)

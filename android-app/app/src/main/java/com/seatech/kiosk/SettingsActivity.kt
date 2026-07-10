@@ -133,6 +133,19 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun onTestPrint() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                    REQ_BT_TEST_PRINT
+                )
+                Toast.makeText(this, "Bluetooth permission required for test print", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
         printService.print(
             ticketNo = "TEST",
             purpose = "Settings test print",
@@ -150,8 +163,26 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQ_BT_TEST_PRINT &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            onTestPrint()
+        }
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    companion object {
+        private const val REQ_BT_TEST_PRINT = 2
     }
 }

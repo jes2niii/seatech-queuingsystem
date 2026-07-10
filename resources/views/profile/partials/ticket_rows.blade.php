@@ -26,8 +26,8 @@
             @php $ut = strtolower((string) \Illuminate\Support\Facades\Auth::user()->usertype); @endphp
             @if($ut === 'cashier')
                 No tickets waiting for cashier.
-            @elseif($ut === 'certificate')
-                No certificates waiting.
+            @elseif($ut === 'releasing')
+                No certificates waiting for release.
             @else
                 No active tickets in the queue.
             @endif

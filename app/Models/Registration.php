@@ -24,6 +24,7 @@ class Registration extends Model
         'email',
         'contact_no',
         'rank',
+        'course',
         'contact_person',
         'relationship',
         'contact_mobile',

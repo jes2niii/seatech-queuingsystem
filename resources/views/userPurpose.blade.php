@@ -153,15 +153,19 @@
                     </div>
 
                     <div class="row g-3 mt-1">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Rank</label>
                             <input type="text" name="rank" class="form-control" placeholder="e.g. Deck Cadet, Third Officer">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Course</label>
+                            <input type="text" name="course" class="form-control" placeholder="e.g. BSMT, BSMarE">
+                        </div>
+                        <div class="col-md-3">
                             <label class="form-label">Email Address <span class="req">*</span></label>
                             <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label">Contact No. <span class="req">*</span></label>
                             <input type="text" name="contact_no" class="form-control" placeholder="0912-345-6789" required>
                         </div>
@@ -214,11 +218,15 @@
                     <h4 class="reg-section-title">Emergency Contact</h4>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Contact Person</label>
                             <input type="text" name="contact_person" class="form-control" placeholder="Full name">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label class="form-label">Relationship</label>
+                            <input type="text" name="relationship" class="form-control" placeholder="e.g. Mother, Spouse, Friend">
+                        </div>
+                        <div class="col-md-4">
                             <label class="form-label">Contact Number</label>
                             <input type="text" name="contact_mobile" class="form-control" placeholder="0912-345-6789">
                         </div>

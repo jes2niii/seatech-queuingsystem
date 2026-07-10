@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Seatech Kiosk</string>
+    <string name="app_name">Seatech Jovanie</string>
 
     <!-- Server config -->
     <string name="default_server_url">http://192.168.0.231/userPurpose</string>

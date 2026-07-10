@@ -128,10 +128,12 @@ function showCallModal(data) {
             ['Email', reg.email, 'email'],
             ['Contact No.', reg.contact_no, 'phone'],
             ['Rank', reg.rank],
+            ['Course', reg.course],
         ]));
 
         regInfo.appendChild(buildRegTable('Emergency Contact', [
             ['Contact Person', reg.contact_person],
+            ['Relationship', reg.relationship],
             ['Contact Number', reg.contact_mobile, 'phone'],
         ]));
     } else {
@@ -141,12 +143,54 @@ function showCallModal(data) {
         regInfo.appendChild(p);
     }
 
+    // Show or hide the Print button depending on whether a registration is linked
+    const printBtn = document.getElementById('btnCallPrint');
+    if (reg && reg.id) {
+        printBtn.style.display = '';
+        printBtn.dataset.registrationId = reg.id;
+    } else {
+        printBtn.style.display = 'none';
+        printBtn.dataset.registrationId = '';
+    }
+
     if (!callModalInstance) {
         callModalInstance = new bootstrap.Modal(document.getElementById('callModal'));
     }
 
     document.getElementById('btnCallDone').dataset.ticketId = ticket.id;
     callModalInstance.show();
+}
+
+document.getElementById('btnCallPrint').addEventListener('click', function () {
+    const regId = this.dataset.registrationId;
+    if (!regId) return;
+    const url = '/registration/' + encodeURIComponent(regId) + '/print-pdf';
+    window.open(url, '_blank', 'width=900,height=800,scrollbars=yes');
+
+    // Close the call modal and show a confirmation toast
+    const callModal = bootstrap.Modal.getInstance(document.getElementById('callModal'));
+    if (callModal) {
+        callModal.hide();
+    }
+    showDashboardToast('Print ready — use the browser print button on the opened PDF.');
+});
+
+/**
+ * Show a brief toast on the dashboard (for actions that don't have a server
+ * flash message, such as the call-modal "Print" button).
+ */
+function showDashboardToast(message) {
+    let toast = document.getElementById('dashboardToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'dashboardToast';
+        toast.className = 'dashboard-toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(showDashboardToast._t);
+    showDashboardToast._t = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
 /**
@@ -309,10 +353,12 @@ function viewRegistration(id) {
                 ['Email', data.email, 'email'],
                 ['Contact No.', data.contact_no, 'phone'],
                 ['Rank', data.rank],
+                ['Course', data.course],
             ]));
 
             body.appendChild(buildRegTable('Emergency Contact', [
                 ['Contact Person', data.contact_person],
+                ['Relationship', data.relationship],
                 ['Contact Number', data.contact_mobile, 'phone'],
             ]));
         })

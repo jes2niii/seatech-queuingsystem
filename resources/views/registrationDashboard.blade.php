@@ -35,7 +35,7 @@
         @php
             $userType = strtolower((string) Auth::user()->usertype);
             $isCashier = $userType === 'cashier';
-            $isCertificate = $userType === 'certificate';
+            $isCertificate = $userType === 'releasing';
             $isRestricted = $isCashier || $isCertificate;
         @endphp
 
@@ -43,7 +43,7 @@
             <button class="sidebar-link active" data-tab="queue" onclick="switchTab('queue')">
                 <i class="bi bi-list-ol"></i>
                 @if($isCashier) Cashier Queue
-                @elseif($isCertificate) Certificate Queue
+                @elseif($isCertificate) Ready for Release
                 @else Queue
                 @endif
             </button>
@@ -81,7 +81,7 @@
                 @php
                     $waitingCount  = $tickets->where('status', 'Waiting')->count();
                     $servingCount  = $tickets->whereIn('status', ['Serving', 'For Payment'])->count();
-                    $pendingCashier = $isCashier ? $tickets->whereIn('prefix', ['E', 'I'])->where('status', 'Done')->count() : 0;
+                    $pendingCashier = $isCashier ? $tickets->whereIn('prefix', ['E', 'I'])->where('status', 'For Payment')->count() : 0;
                 @endphp
                 <div class="dash-stats-row">
                     <div class="dash-stat">
@@ -110,8 +110,8 @@
                     <div class="dash-card-header">
                         <h2 class="dash-card-title"><i class="bi bi-list-task"></i>
                             @if($isCashier) Cashier Queue
-                            @elseif($isCertificate) Certificate Queue
-                            @else Active Tickets
+                            @elseif($isCertificate) Ready for Release
+                            @else Registration Queue
                             @endif
                         </h2>
                         <span style="font-size:12px; color:var(--color-text-muted);">Click a row to select</span>
@@ -167,21 +167,33 @@
                 </form>
 
                 <!-- ACTION TOOLBAR -->
-                <div class="action-toolbar {{ $isRestricted ? 'action-toolbar-3' : '' }}">
+                @php
+                    $toolbarClass = $isCertificate ? 'action-toolbar-2' : 'action-toolbar-3';
+                @endphp
+                <div class="action-toolbar {{ $toolbarClass }}">
                     <button class="action-btn action-btn-call" onclick="submitAction('call')">
                         <i class="bi bi-telephone-fill"></i> Call
                     </button>
-                    @if(!$isRestricted)
-                    <button class="action-btn action-btn-payment" onclick="submitAction('payment')">
-                        <i class="bi bi-cash-coin"></i> Payment
+
+                    @if($isCertificate)
+                    <button class="action-btn action-btn-done" onclick="submitAction('done')">
+                        <i class="bi bi-check-circle-fill"></i> Done
                     </button>
-                    @endif
+                    @elseif($isCashier)
                     <button class="action-btn action-btn-done" onclick="submitAction('done')">
                         <i class="bi bi-check-circle-fill"></i> Done
                     </button>
                     <button class="action-btn action-btn-cancel" onclick="submitAction('cancel')">
                         <i class="bi bi-x-circle-fill"></i> Cancel
                     </button>
+                    @else
+                    <button class="action-btn action-btn-payment" onclick="submitAction('done')">
+                        <i class="bi bi-cash-coin"></i> For Payment
+                    </button>
+                    <button class="action-btn action-btn-cancel" onclick="submitAction('cancel')">
+                        <i class="bi bi-x-circle-fill"></i> Cancel
+                    </button>
+                    @endif
                 </div>
             </div>
 
@@ -203,6 +215,7 @@
                                     <th>Email</th>
                                     <th>Contact</th>
                                     <th>Rank</th>
+                                    <th>Course</th>
                                     <th>Date</th>
                                     <th style="width: 100px;">Action</th>
                                 </tr>
@@ -220,16 +233,22 @@
                                     <td style="color: var(--color-text-muted);">{{ $reg->email }}</td>
                                     <td>{{ $reg->contact_no }}</td>
                                     <td>{{ $reg->rank ?? '—' }}</td>
+                                    <td>{{ $reg->course ?? '—' }}</td>
                                     <td style="color: var(--color-text-muted); font-size: 13px;">{{ $reg->created_at->format('M d, Y') }}</td>
                                     <td>
-                                        <button class="view-btn" onclick="viewRegistration({{ $reg->id }})">
-                                            <i class="bi bi-eye"></i> View
-                                        </button>
+                                        <div style="display: flex; gap: 6px;">
+                                            <button class="view-btn" onclick="viewRegistration({{ $reg->id }})">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
+                                            <a class="print-excel-btn" href="{{ route('registration.print.excel', $reg) }}" title="Print Excel">
+                                                <i class="bi bi-file-earmark-excel"></i> Print Excel
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="8" class="empty-state">
+                                    <td colspan="9" class="empty-state">
                                         <i class="bi bi-inbox"></i>
                                         <div>No registrations yet.</div>
                                     </td>
@@ -266,9 +285,20 @@
                 <button type="button" class="modal-btn modal-btn-secondary" id="btnCallClose" data-bs-dismiss="modal">
                     <i class="bi bi-x-lg"></i> Close
                 </button>
-                <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
-                    <i class="bi bi-check-lg"></i> Mark as Done
-                </button>
+                <div>
+                    <button type="button" class="modal-btn modal-btn-info" id="btnCallPrint" style="display:none;">
+                        <i class="bi bi-printer"></i> Print Excel
+                    </button>
+                    @if($isRestricted)
+                    <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
+                        <i class="bi bi-check-lg"></i> Mark as Done
+                    </button>
+                    @else
+                    <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
+                        <i class="bi bi-cash-coin"></i> Submit for Payment
+                    </button>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

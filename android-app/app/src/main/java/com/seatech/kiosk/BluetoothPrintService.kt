@@ -14,10 +14,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Improvements over the original:
  *  - Mutex-style guard via [AtomicBoolean] to prevent concurrent prints
- *  - Hard connection timeout via reflection (10s)
+ *  - Real connection timeout enforced via a dedicated connect thread
  *  - Limited automatic retries for transient connection failures
  *  - Clearer error categorisation
  *  - Configurable printer address / name match
+ *  - Standard socket method tried first; reflection-based fallback only if needed
  */
 class BluetoothPrintService(
     private val connectionTimeoutMs: Int = 10_000,
@@ -80,47 +81,107 @@ class BluetoothPrintService(
         preferredAddress: String?,
         preferredNameHint: String,
     ): PrintResult {
-        try {
-            val adapter = BluetoothAdapter.getDefaultAdapter()
-                ?: return PrintResult.Error("Bluetooth not available on this device", retryable = false)
+        val adapter = try {
+            BluetoothAdapter.getDefaultAdapter()
+        } catch (e: SecurityException) {
+            return PrintResult.Error("Bluetooth permission denied", retryable = false)
+        } ?: return PrintResult.Error("Bluetooth not available on this device", retryable = false)
 
-            if (!adapter.isEnabled) {
-                return PrintResult.Error("Bluetooth is turned off", retryable = false)
-            }
+        if (!adapter.isEnabled) {
+            return PrintResult.Error("Bluetooth is turned off", retryable = false)
+        }
 
-            val device = pickPrinter(adapter, preferredAddress, preferredNameHint)
-                ?: return PrintResult.Error(
-                    "Printer not paired. Pair it in Android Bluetooth settings first.",
-                    retryable = false
-                )
+        val device = pickPrinter(adapter, preferredAddress, preferredNameHint)
+            ?: return PrintResult.Error(
+                "Printer not paired. Pair it in Android Bluetooth settings first.",
+                retryable = false
+            )
 
-            socket = tryCreateSocket(device)
-            adapter.cancelDiscovery()
+        // First try the standard socket; fall back to reflection if it fails.
+        var s = createStandardSocket(device)
+        if (s == null) {
+            s = createReflectedSocket(device)
+        }
+        if (s == null) {
+            return PrintResult.Error("Could not open socket", retryable = true)
+        }
+        socket = s
+        adapter.cancelDiscovery()
 
-            val s = socket ?: return PrintResult.Error("Could not open socket", retryable = true)
-            s.connect()
-            if (cancelled.get()) {
-                close()
-                return PrintResult.Cancelled
-            }
+        val connectResult = connectWithTimeout(s)
+        if (connectResult is ConnectResult.Failed) {
+            close()
+            return PrintResult.Error(connectResult.message, retryable = connectResult.retryable)
+        }
+        if (cancelled.get()) {
+            close()
+            return PrintResult.Cancelled
+        }
 
-            val out: OutputStream = try {
-                s.outputStream
-            } catch (e: IOException) {
-                return PrintResult.Error("No output stream: ${e.message}", retryable = true)
-            }
+        val out: OutputStream = try {
+            s.outputStream
+        } catch (e: IOException) {
+            close()
+            return PrintResult.Error("No output stream: ${e.message}", retryable = true)
+        }
 
+        return try {
             out.write(buildESCData(ticketNo, purpose))
             out.flush()
-
             close()
-            return PrintResult.Success
-
-        } catch (e: Exception) {
+            PrintResult.Success
+        } catch (e: IOException) {
             close()
-            val msg = e.message ?: "Unknown error"
-            val retryable = e !is SecurityException && msg.contains("failed", ignoreCase = true)
-            return PrintResult.Error(msg, retryable = retryable)
+            PrintResult.Error("Write failed: ${e.message}", retryable = true)
+        }
+    }
+
+    private sealed class ConnectResult {
+        object Success : ConnectResult()
+        data class Failed(val message: String, val retryable: Boolean) : ConnectResult()
+    }
+
+    /**
+     * Performs the blocking [BluetoothSocket.connect] call but enforces
+     * the configured [connectionTimeoutMs] by interrupting the socket from
+     * a watchdog thread.
+     */
+    private fun connectWithTimeout(s: BluetoothSocket): ConnectResult {
+        val connectThread = Thread {
+            try {
+                s.connect()
+            } catch (_: Exception) {
+                // Errors handled via the result of this method / close()
+            }
+        }
+        connectThread.isDaemon = true
+        connectThread.start()
+
+        val deadline = System.currentTimeMillis() + connectionTimeoutMs
+        while (connectThread.isAlive) {
+            if (cancelled.get()) {
+                close()
+                return ConnectResult.Failed("Cancelled", retryable = false)
+            }
+            if (System.currentTimeMillis() > deadline) {
+                close()
+                return ConnectResult.Failed(
+                    "Connection timed out after ${connectionTimeoutMs / 1000}s",
+                    retryable = true
+                )
+            }
+            try {
+                Thread.sleep(100)
+            } catch (_: InterruptedException) {
+                return ConnectResult.Failed("Interrupted", retryable = true)
+            }
+        }
+        return try {
+            // If the socket is connected we're good. If connect() threw, isConnected is false.
+            if (s.isConnected) ConnectResult.Success
+            else ConnectResult.Failed("Could not connect to printer", retryable = true)
+        } catch (_: Exception) {
+            ConnectResult.Failed("Connection error", retryable = true)
         }
     }
 
@@ -162,27 +223,30 @@ class BluetoothPrintService(
         return null
     }
 
-    private fun tryCreateSocket(device: BluetoothDevice): BluetoothSocket? {
-        // Try standard createRfcommSocketToServiceRecord first
-        val s = try {
+    private fun createStandardSocket(device: BluetoothDevice): BluetoothSocket? {
+        return try {
             device.createRfcommSocketToServiceRecord(sppUuid)
-        } catch (e: SecurityException) {
-            return null
-        } catch (e: IOException) {
-            return null
+        } catch (_: SecurityException) {
+            null
+        } catch (_: IOException) {
+            null
+        } catch (_: Exception) {
+            null
         }
+    }
 
-        // Some printers require reflection-based fallback (well-known Android workaround)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1) {
-            try {
-                val method = device.javaClass.getMethod("createRfcommSocket", Int::class.javaPrimitiveType)
-                val fallback = method.invoke(device, 1) as? BluetoothSocket
-                return fallback ?: s
-            } catch (_: Exception) {
-                // ignore and use standard
-            }
+    /**
+     * Some printers require reflection-based fallback (well-known Android workaround).
+     * Only used if the standard method fails to open a usable socket.
+     */
+    private fun createReflectedSocket(device: BluetoothDevice): BluetoothSocket? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD_MR1) return null
+        return try {
+            val method = device.javaClass.getMethod("createRfcommSocket", Int::class.javaPrimitiveType)
+            method.invoke(device, 1) as? BluetoothSocket
+        } catch (_: Exception) {
+            null
         }
-        return s
     }
 
     fun cancel() {

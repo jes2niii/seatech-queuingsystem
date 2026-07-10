@@ -41,6 +41,20 @@ Route::post('/ticket/preview', [TicketController::class, 'preview']);
 Route::post('/registration/store', [RegistrationController::class, 'store']);
 Route::get('/registration/{registration}', [RegistrationController::class, 'show'])
     ->middleware('auth');
+Route::get('/registration/{registration}/print-excel',
+    [App\Http\Controllers\RegistrationExportController::class, 'printExcel'])
+    ->middleware('auth')
+    ->name('registration.print.excel');
+
+Route::get('/registration/{registration}/print',
+    [App\Http\Controllers\RegistrationExportController::class, 'printHtml'])
+    ->middleware('auth')
+    ->name('registration.print');
+
+Route::get('/registration/{registration}/print-pdf',
+    [App\Http\Controllers\RegistrationExportController::class, 'printPdf'])
+    ->middleware('auth')
+    ->name('registration.print.pdf');
 
 Route::post('/tickets/action', [TicketController::class, 'action'])
     ->middleware('auth')
@@ -90,14 +104,14 @@ Route::get('/tickets/live', function () {
                        ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
                 })->orWhere(function ($q2) {
                     $q2->whereIn('prefix', ['E', 'I'])
-                       ->where('status', 'Done');
+                       ->whereIn('status', ['For Payment', 'Serving']);
                 });
             });
-        } elseif ($userType === 'certificate') {
-            $query->where('prefix', 'R')
-                  ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+        } elseif ($userType === 'releasing') {
+            $query->where('prefix', 'R');
         } else {
-            $query->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+            $query->whereIn('prefix', ['E', 'I'])
+                  ->whereIn('status', ['Waiting', 'Serving']);
         }
     } else {
         $query->whereIn('status', ['Waiting', 'Serving', 'For Payment']);

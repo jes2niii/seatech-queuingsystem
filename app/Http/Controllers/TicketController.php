@@ -21,10 +21,7 @@ class TicketController extends Controller
 
         $tickets = $this->getQueueTicketsForUser($user);
 
-        $nowServing = Ticket::where('served_by', $user->name)
-            ->whereIn('status', ['Serving', 'For Payment'])
-            ->latest('id')
-            ->first();
+        $nowServing = $this->getNowServingForUser($user);
 
         $registrations = Registration::with('ticket')->latest()->get();
 
@@ -114,9 +111,9 @@ class TicketController extends Controller
         $user = Auth::user();
         $ticket = Ticket::findOrFail($request->ticket_id);
 
-        // Cashier and Certificate users can only call, done, cancel — no payment
+        // Cashier and Releasing users can only call, done, cancel — no payment
         $userType = strtolower((string) ($user->usertype ?? ''));
-        if (in_array($userType, ['cashier', 'certificate'], true) && $request->action === 'payment') {
+        if (in_array($userType, ['cashier', 'releasing'], true) && $request->action === 'payment') {
             return back()->with('error', ucfirst($userType) . ' users cannot perform payment actions.');
         }
 
@@ -150,8 +147,12 @@ class TicketController extends Controller
             break;
 
             case 'done':
+                $userType = strtolower((string) ($user->usertype ?? ''));
+                $newStatus = in_array($userType, ['cashier', 'releasing'], true)
+                    ? Ticket::STATUS_DONE
+                    : Ticket::STATUS_FOR_PAYMENT;
                 $ticket->update([
-                    'status' => Ticket::STATUS_DONE,
+                    'status' => $newStatus,
                 ]);
                 break;
 
@@ -205,10 +206,7 @@ class TicketController extends Controller
 
         $tickets = $this->getQueueTicketsForUser($user);
 
-        $nowServing = Ticket::where('served_by', $user->name)
-            ->whereIn('status', ['Serving', 'For Payment'])
-            ->latest('id')
-            ->first();
+        $nowServing = $this->getNowServingForUser($user);
 
         $registrations = Registration::with('ticket')->latest()->get();
 
@@ -219,10 +217,10 @@ class TicketController extends Controller
      * Get the queue tickets appropriate for the logged-in user.
      *  - Cashier users see:
      *      - C-prefix tickets with status in (Waiting, Serving, For Payment)
-     *      - Registration tickets (E/I) that are Done
-     *  - Certificate users see:
-     *      - R-prefix tickets with status in (Waiting, Serving, For Payment)
-     *  - Other staff see all active tickets (Waiting, Serving, For Payment)
+     *      - Registration tickets (E/I) that are For Payment or Serving
+     *  - Releasing users see:
+     *      - R-prefix tickets with status Done (ready for release)
+     *  - Other staff see E/I-prefix active tickets (Waiting, Serving)
      */
     private function getQueueTicketsForUser($user)
     {
@@ -241,17 +239,44 @@ class TicketController extends Controller
                        ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
                 })->orWhere(function ($q2) {
                     $q2->whereIn('prefix', ['E', 'I'])
-                       ->where('status', 'Done');
+                       ->whereIn('status', ['For Payment', 'Serving']);
                 });
             });
-        } elseif ($userType === 'certificate') {
+        } elseif ($userType === 'releasing') {
             $query->where('prefix', 'R')
-                  ->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+                  ->where('status', 'Done');
         } else {
-            $query->whereIn('status', ['Waiting', 'Serving', 'For Payment']);
+            $query->whereIn('prefix', ['E', 'I'])
+                  ->whereIn('status', ['Waiting', 'Serving']);
         }
 
         return $query->get();
+    }
+
+    /**
+     * Get the "Now Serving" ticket for the logged-in user.
+     *  - Releasing users: most recent Done R ticket.
+     *  - Other staff: the ticket they are actively serving (status = Serving, served_by = user).
+     */
+    private function getNowServingForUser($user)
+    {
+        if (!$user) {
+            return null;
+        }
+
+        $userType = strtolower((string) $user->usertype);
+
+        if ($userType === 'releasing') {
+            return Ticket::where('prefix', 'R')
+                ->where('status', 'Done')
+                ->latest('id')
+                ->first();
+        }
+
+        return Ticket::where('served_by', $user->name)
+            ->where('status', 'Serving')
+            ->latest('id')
+            ->first();
     }
 
     public function adminDashboard()
