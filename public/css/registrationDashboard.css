@@ -369,7 +369,7 @@ body {
 
 .dash-card-body {
     flex: 1;
-    overflow-y: auto;
+    overflow: auto;
     min-height: 0;
 }
 

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="{{ asset('css/registrationDashboard.css') }}?v={{ time() }}">
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ asset('css/registrationDashboard.css') }}?v={{ time() }}">
     <title>Staff Dashboard | SEATECH</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -104,7 +104,7 @@
         <div class="dash-content">
 
             <!-- QUEUE TAB -->
-            <div class="tab-content" id="tabContentQueue">
+            <div id="tabContentQueue">
 
                 <div class="dash-card">
                     <div class="dash-card-header">
@@ -198,7 +198,7 @@
             </div>
 
             <!-- REGISTRATIONS TAB -->
-            <div class="tab-content" id="tabContentRegistrations" style="display:none;">
+            <div id="tabContentRegistrations" style="display:none;">
 
                 <div class="dash-card">
                     <div class="dash-card-header">
@@ -305,7 +305,7 @@
 </div>
 
 <!-- VIEW REGISTRATION MODAL -->
-<div class="modal fade" id="viewRegModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="viewRegModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -324,8 +324,8 @@
     </div>
 </div>
 
-<script src="{{ asset('js/registrationDashboard.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('js/registrationDashboard.js') }}"></script>
 
 <audio id="callSound" src="{{ asset('sounds/call.mp3') }}" preload="auto"></audio>
 

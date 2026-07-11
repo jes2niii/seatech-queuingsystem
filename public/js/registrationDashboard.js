@@ -290,6 +290,11 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
+document.querySelectorAll('.global-flash').forEach(el => {
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; }, 3500);
+    setTimeout(() => el.remove(), 3800);
+});
+
 // Tab Switching
 function switchTab(tab) {
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
