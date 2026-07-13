@@ -286,8 +286,11 @@
                     <i class="bi bi-x-lg"></i> Close
                 </button>
                 <div>
+                    <button type="button" class="modal-btn modal-btn-info" id="btnCallPrintHtml" style="display:none;">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
                     <button type="button" class="modal-btn modal-btn-info" id="btnCallPrint" style="display:none;">
-                        <i class="bi bi-printer"></i> Print Excel
+                        <i class="bi bi-file-earmark-excel"></i> Print Excel
                     </button>
                     @if($isRestricted)
                     <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">

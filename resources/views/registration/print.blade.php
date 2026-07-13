@@ -6,31 +6,32 @@
     <style>
         @page {
             size: A4;
-            margin: 12mm;
+            margin: 8mm;
         }
 
         * { box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #1a1a2e;
+            color: #000;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background: #fff;
+            font-size: 11px;
+            line-height: 1.3;
         }
 
         .no-print {
             display: flex;
             justify-content: flex-end;
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
-
         .no-print button {
-            padding: 10px 18px;
-            font-size: 14px;
+            padding: 8px 14px;
+            font-size: 13px;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 4px;
             border: 1px solid #0E0057;
             background: #0E0057;
             color: #FDCD23;
@@ -42,310 +43,386 @@
         }
         .no-print button:hover { opacity: 0.9; }
 
-        .page {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            border: 2px solid #0E0057;
-            border-radius: 6px;
-            padding: 24px;
+        /* ===== Header / Footer images ===== */
+        .form-header-image,
+        .form-footer-image {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .form-header-image { margin-bottom: 8px; }
+        .form-footer-image { margin-top: 10px; }
+
+        /* ===== Form body ===== */
+        .form-page {
+            border: 1px solid #0E0057;
+            padding: 10px 14px;
         }
 
-        .page-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            border-bottom: 3px solid #0E0057;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-        }
-
-        .page-header img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-        }
-
-        .page-header .title h1 {
-            margin: 0;
-            font-size: 18px;
-            color: #0E0057;
-            font-weight: 700;
-        }
-
-        .page-header .title p {
-            margin: 2px 0 0;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .ticket-banner {
-            background: #0E0057;
-            color: #FDCD23;
-            padding: 10px 16px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .ticket-banner .label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 600;
-        }
-
-        .ticket-banner .value {
-            font-size: 22px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .section-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #0E0057;
-            border-bottom: 2px solid #FDCD23;
-            padding-bottom: 4px;
-            margin: 18px 0 10px 0;
-        }
-
-        .section-title:first-of-type {
-            margin-top: 0;
-        }
-
-        .field-grid {
+        .top-row {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px 16px;
-            font-size: 12px;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 14px;
+            margin-bottom: 6px;
         }
 
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .field .label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6c757d;
+        .italic-note {
+            font-style: italic;
             font-weight: 600;
+            font-size: 11px;
+            margin-bottom: 4px;
+            color: #000;
         }
 
-        .field .value {
-            color: #1a1a2e;
-            font-weight: 500;
-            word-break: break-word;
+        /* ===== Inline field (label + underline on same row) ===== */
+        .inline-field {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-bottom: 3px;
+        }
+        .inline-field > .label {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #000;
+            white-space: nowrap;
+        }
+        .inline-field > .value-line {
+            flex-grow: 1;
+            border-bottom: 1px solid #000;
+            font-size: 12px;
             min-height: 16px;
+            padding: 0 3px 1px 3px;
+        }
+        .inline-field.gender > .value-line {
+            border-bottom: none;
         }
 
-        .field.span-2 { grid-column: span 2; }
-        .field.span-3 { grid-column: span 3; }
+        /* ===== Above-line field (label above, underline below) ===== */
+        .field {
+            margin-bottom: 6px;
+        }
+        .field > .label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #000;
+            letter-spacing: 0.5px;
+            text-align: center;
+            margin-top: 1px;
+        }
+        .field > .value-line {
+            border-bottom: 1px solid #000;
+            font-size: 12px;
+            min-height: 16px;
+            text-align: center;
+            padding: 0 3px 4px 3px;
+        }
 
+        /* ===== Checkbox row (enrollee type, referral type, gender) ===== */
         .checkbox-row {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 12px;
-            margin: 4px 0 8px 0;
+            flex-direction: column;
+            margin-bottom: 4px;
         }
-
         .check {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        .check.indented {
+            margin-left: 14px;
+        }
+
+        /* ===== Multi-column rows ===== */
+        .name-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 2px 0 6px 0;
+        }
+        .row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .row-srn-app-rank {
+            display: grid;
+            grid-template-columns: 0.8fr 2fr 0.8fr;
+            gap: 10px;
+            align-items: baseline;
+        }
+        .address-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        /* ===== REFERRAL TYPE section (unboxed, open layout) ===== */
+        .referral-section > .title {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            color: #000;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+        .ref-row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+        .ref-row-full {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        .ref-row-full > .label-inline {
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
+            white-space: nowrap;
+        }
+        .ref-row-full > .value-line {
+            flex-grow: 1;
+            border-bottom: 1px solid #000;
+            min-height: 16px;
+            padding: 0 3px 1px 3px;
             font-size: 12px;
         }
 
-        .check .box {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 1.5px solid #0E0057;
-            border-radius: 2px;
-            position: relative;
+        /* ===== Emergency contact row ===== */
+        .emergency-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 16px;
+            margin-bottom: 6px;
         }
 
-        .check.checked .box::after {
-            content: "✓";
-            color: #0E0057;
-            font-size: 14px;
-            font-weight: 900;
-            position: absolute;
-            top: -3px;
-            left: 1px;
+        /* ===== Course / Schedule section ===== */
+        .course-section {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 45px;
+            margin-bottom: 8px;
         }
-
-        .footer-note {
-            margin-top: 24px;
-            padding-top: 12px;
-            border-top: 1px solid #dee2e6;
-            font-size: 10px;
-            color: #6c757d;
+        .course-section .col-title {
+            font-size: 11px;
+            font-weight: 700;
             text-align: center;
+            text-transform: uppercase;
+            color: #000;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+        .course-line {
+            border-bottom: 1px solid #000;
+            height: 22px;
+            font-size: 12px;
+            padding: 2px 4px;
         }
 
         @media print {
             body { padding: 0; }
             .no-print { display: none !important; }
-            .page {
-                border: none;
-                padding: 0;
-                max-width: none;
-            }
-            .section-title { break-after: avoid; }
         }
     </style>
 </head>
 <body>
+    @php
+        $checked = "\u{2611}";
+        $unchecked = "\u{2610}";
+        $isNew    = ($registration->enrollee_type === 'New Enrollee');
+        $isOld    = ($registration->enrollee_type === 'Old Enrollee');
+        $refType  = $registration->referral_type;
+        $refSrc   = $registration->referral_source;
+        $isMale   = ($registration->gender === 'Male');
+        $isFemale = ($registration->gender === 'Female');
+    @endphp
+
     <div class="no-print">
         <button class="secondary" type="button" onclick="window.close()">Close</button>
         <button type="button" onclick="window.print()">Print this page</button>
     </div>
 
-    <div class="page">
+    {{-- Header image --}}
+    <img src="{{ asset('img/header_logo.png') }}" class="form-header-image" alt="Registration Form Header">
 
-        <div class="page-header">
-            <img src="{{ asset('img/seatechLogo.png') }}" alt="Logo">
-            <div class="title">
-                <h1>SEATECH Maritime Training &amp; Assessment Center Inc.</h1>
-                <p>Student Registration Form</p>
-            </div>
-        </div>
+    <div class="form-page">
 
-        @if($registration->ticket)
-        <div class="ticket-banner">
+        {{-- Top row: Enrollee + Referral side by side --}}
+        <div class="top-row">
+            {{-- LEFT: Enrollee section --}}
             <div>
-                <div class="label">Ticket Number</div>
-                <div class="value">{{ $registration->ticket->ticket_no }}</div>
+                <div class="italic-note">Fill out this form completely and legibly.</div>
+
+                <div class="checkbox-row">
+                    <span class="check indented">
+                        <span class="box {{ $isNew ? '' : 'unchecked' }}">{{ $isNew ? $checked : $unchecked }}</span>
+                        New Enrollee
+                    </span>
+                    <span class="check indented">
+                        <span class="box {{ $isOld ? '' : 'unchecked' }}">{{ $isOld ? $checked : $unchecked }}</span>
+                        Old Enrollee
+                    </span>
+                </div>
+
+                <div class="inline-field">
+                    <span class="label">DATE OF ENROLEMENT:</span>
+                    <span class="value-line">{{ $registration->enrollment_date?->format('F d, Y') }}</span>
+                </div>
             </div>
-            <div style="text-align: right;">
-                <div class="label">Purpose</div>
-                <div style="font-weight: 600; font-size: 13px;">{{ $registration->ticket->purpose }}</div>
+
+            {{-- RIGHT: REFERRAL TYPE --}}
+            <div class="referral-section">
+                <div class="title">REFERRAL TYPE</div>
+
+                <div class="ref-row-2col">
+                    <span class="check">
+                        <span class="box {{ $refType === 'Onsite/Walk-in' ? '' : 'unchecked' }}">{{ $refType === 'Onsite/Walk-in' ? $checked : $unchecked }}</span>
+                        Onsite/Walk-in
+                    </span>
+                    <span class="check">
+                        <span class="box {{ $refType === 'Online Enrollment' ? '' : 'unchecked' }}">{{ $refType === 'Online Enrollment' ? $checked : $unchecked }}</span>
+                        Online Enrollment
+                    </span>
+                </div>
+
+                <div class="ref-row-full">
+                    <span class="check" style="margin: 0;">
+                        <span class="box {{ $refType === 'Marketing' ? '' : 'unchecked' }}">{{ $refType === 'Marketing' ? $checked : $unchecked }}</span>
+                    </span>
+                    <span class="label-inline">Marketing:</span>
+                    <span class="value-line">{{ $refType === 'Marketing' ? ($refSrc ?? '') : '' }}</span>
+                </div>
+
+                <div class="ref-row-full">
+                    <span class="check" style="margin: 0;">
+                        <span class="box {{ $refType === 'Company' ? '' : 'unchecked' }}">{{ $refType === 'Company' ? $checked : $unchecked }}</span>
+                    </span>
+                    <span class="label-inline">Company:</span>
+                    <span class="value-line">{{ $refType === 'Company' ? ($refSrc ?? '') : '' }}</span>
+                </div>
             </div>
         </div>
-        @endif
 
-        <div class="section-title">Enrollment Information</div>
+        {{-- Enrollee section (full width) --}}
 
-        <div class="checkbox-row">
-            @php $isNew = ($registration->enrollee_type === 'New Enrollee'); $isOld = ($registration->enrollee_type === 'Old Enrollee'); @endphp
-            <span class="check {{ $isNew ? 'checked' : '' }}"><span class="box"></span> New Enrollee</span>
-            <span class="check {{ $isOld ? 'checked' : '' }}"><span class="box"></span> Old Enrollee</span>
-        </div>
-
-        @php
-            $isMarketing = ($registration->referral_type === 'Marketing');
-            $isCompany = ($registration->referral_type === 'Company');
-        @endphp
-        <div class="checkbox-row">
-            <span class="check {{ $registration->referral_type === 'Onsite/Walk-in' ? 'checked' : '' }}"><span class="box"></span> Onsite/Walk-in</span>
-            <span class="check {{ $registration->referral_type === 'Online Enrollment' ? 'checked' : '' }}"><span class="box"></span> Online Enrollment</span>
-            <span class="check {{ $isMarketing ? 'checked' : '' }}"><span class="box"></span> Marketing: <strong>{{ $isMarketing ? ($registration->referral_source ?? '') : '' }}</strong></span>
-            <span class="check {{ $isCompany ? 'checked' : '' }}"><span class="box"></span> Company: <strong>{{ $isCompany ? ($registration->referral_source ?? '') : '' }}</strong></span>
-        </div>
-
-        <div class="field-grid" style="grid-template-columns: 1fr 1fr; margin-top: 6px;">
+        <div style="display: grid; grid-template-columns: auto 1fr 1fr 1fr; gap: 10px; align-items: baseline; margin: 2px 0 6px 0;">
+            <span style="font-size: 10.5px; font-weight: 700;">NAME:</span>
             <div class="field">
-                <div class="label">Date of Enrollment</div>
-                <div class="value">{{ $registration->enrollment_date?->format('F d, Y') ?? '—' }}</div>
-            </div>
-        </div>
-
-        <div class="section-title">Personal Information</div>
-
-        <div class="field-grid">
-            <div class="field">
+                <div class="value-line">{{ $registration->first_name }}</div>
                 <div class="label">First Name</div>
-                <div class="value">{{ $registration->first_name ?? '—' }}</div>
             </div>
             <div class="field">
+                <div class="value-line">{{ $registration->middle_name }}</div>
                 <div class="label">Middle Name</div>
-                <div class="value">{{ $registration->middle_name ?? '—' }}</div>
             </div>
             <div class="field">
+                <div class="value-line">{{ $registration->last_name }}</div>
                 <div class="label">Last Name</div>
-                <div class="value">{{ $registration->last_name ?? '—' }}</div>
-            </div>
-
-            <div class="field">
-                <div class="label">SRN</div>
-                <div class="value">{{ $registration->srn ?? '—' }}</div>
-            </div>
-            <div class="field span-2">
-                <div class="label">Application No. (For Assessment)</div>
-                <div class="value">{{ $registration->application_no ?? '—' }}</div>
-            </div>
-
-            <div class="field">
-                <div class="label">Rank</div>
-                <div class="value">{{ $registration->rank ?? '—' }}</div>
-            </div>
-            <div class="field">
-                <div class="label">Course</div>
-                <div class="value">{{ $registration->course ?? '—' }}</div>
-            </div>
-            <div class="field">
-                <div class="label">Email Address</div>
-                <div class="value">{{ $registration->email ?? '—' }}</div>
-            </div>
-
-            <div class="field">
-                <div class="label">Contact No.</div>
-                <div class="value">{{ $registration->contact_no ?? '—' }}</div>
-            </div>
-            <div class="field">
-                <div class="label">Date of Birth</div>
-                <div class="value">{{ $registration->birthdate?->format('F d, Y') ?? '—' }}</div>
-            </div>
-            <div class="field">
-                <div class="label">Civil Status</div>
-                <div class="value">{{ $registration->civil_status ?? '—' }}</div>
-            </div>
-
-            <div class="field">
-                <div class="label">Place of Birth</div>
-                <div class="value">{{ $registration->place_of_birth ?? '—' }}</div>
-            </div>
-            <div class="field span-2">
-                <div class="label">Gender</div>
-                <div class="value">{{ $registration->gender ?? '—' }}</div>
-            </div>
-
-            <div class="field span-3">
-                <div class="label">Address</div>
-                <div class="value">{{ $registration->address ?? '—' }}</div>
             </div>
         </div>
 
-        <div class="section-title">Emergency Contact</div>
-
-        <div class="field-grid">
-            <div class="field">
-                <div class="label">Contact Person</div>
-                <div class="value">{{ $registration->contact_person ?? '—' }}</div>
+        <div class="row-srn-app-rank">
+            <div class="inline-field">
+                <span class="label">SRN:</span>
+                <span class="value-line">{{ $registration->srn }}</span>
             </div>
-            <div class="field">
-                <div class="label">Relationship</div>
-                <div class="value">{{ $registration->relationship ?? '—' }}</div>
+            <div class="inline-field">
+                <span class="label">APPLICATION NO. (For Assessment)</span>
+                <span class="value-line">{{ $registration->application_no }}</span>
             </div>
-            <div class="field">
-                <div class="label">Mobile No.</div>
-                <div class="value">{{ $registration->contact_mobile ?? '—' }}</div>
+            <div class="inline-field">
+                <span class="label">RANK:</span>
+                <span class="value-line">{{ $registration->rank }}</span>
             </div>
         </div>
 
-        <div class="footer-note">
-            Generated on {{ now()->format('F d, Y h:i A') }} &middot; Registration ID #{{ $registration->id }}
+        <div class="row-3" style="margin-top: 4px;">
+            <div class="inline-field">
+                <span class="label">Email Address:</span>
+                <span class="value-line">{{ $registration->email }}</span>
+            </div>
+            <div class="inline-field">
+                <span class="label">Contact No.</span>
+                <span class="value-line">{{ $registration->contact_no }}</span>
+            </div>
+            <div class="inline-field">
+                <span class="label">Date of Birth:</span>
+                <span class="value-line">{{ $registration->birthdate?->format('F d, Y') }}</span>
+            </div>
         </div>
+
+        <div class="row-3" style="margin-top: 4px;">
+            <div class="inline-field">
+                <span class="label">Place of Birth:</span>
+                <span class="value-line">{{ $registration->place_of_birth }}</span>
+            </div>
+            <div class="inline-field">
+                <span class="label">Civil Status:</span>
+                <span class="value-line">{{ $registration->civil_status }}</span>
+            </div>
+            <div class="inline-field gender">
+                <span class="label">Gender:</span>
+                <span class="value-line" style="display: flex; gap: 12px; align-items: center;">
+                    <span class="check" style="margin: 0;">
+                        <span class="box {{ $isMale ? '' : 'unchecked' }}">{{ $isMale ? $checked : $unchecked }}</span> Male
+                    </span>
+                    <span class="check" style="margin: 0;">
+                        <span class="box {{ $isFemale ? '' : 'unchecked' }}">{{ $isFemale ? $checked : $unchecked }}</span> Female
+                    </span>
+                </span>
+            </div>
+        </div>
+
+        <div class="address-row" style="margin-top: 4px;">
+            <div class="inline-field">
+                <span class="label">Address:</span>
+                <span class="value-line">{{ $registration->address }}</span>
+            </div>
+        </div>
+
+        {{-- Emergency contact --}}
+        <div class="emergency-row">
+            <div class="inline-field">
+                <span class="label">Emergency Contact Person:</span>
+                <span class="value-line">{{ $registration->contact_person }}</span>
+            </div>
+            <div class="inline-field">
+                <span class="label">Contact Number</span>
+                <span class="value-line">{{ $registration->contact_mobile }}</span>
+            </div>
+        </div>
+
+        {{-- Training / Assessment Course & Schedule --}}
+        <div class="course-section">
+            <div>
+                <div class="col-title">TRAINING / ASSESSMENT COURSE</div>
+                <div class="course-line">{{ $registration->course }}</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+            </div>
+            <div>
+                <div class="col-title">SCHEDULE</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+                <div class="course-line">&nbsp;</div>
+            </div>
+        </div>
+
+    {{-- Footer image --}}
+    <img src="{{ asset('img/footer.png') }}" class="form-footer-image" alt="Registration Form Footer">
+
     </div>
 
     <script>

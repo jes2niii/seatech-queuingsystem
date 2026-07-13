@@ -143,14 +143,19 @@ function showCallModal(data) {
         regInfo.appendChild(p);
     }
 
-    // Show or hide the Print button depending on whether a registration is linked
+    // Show or hide the Print buttons depending on whether a registration is linked
     const printBtn = document.getElementById('btnCallPrint');
+    const printHtmlBtn = document.getElementById('btnCallPrintHtml');
     if (reg && reg.id) {
         printBtn.style.display = '';
+        printHtmlBtn.style.display = '';
         printBtn.dataset.registrationId = reg.id;
+        printHtmlBtn.dataset.registrationId = reg.id;
     } else {
         printBtn.style.display = 'none';
+        printHtmlBtn.style.display = 'none';
         printBtn.dataset.registrationId = '';
+        printHtmlBtn.dataset.registrationId = '';
     }
 
     if (!callModalInstance) {
@@ -164,15 +169,34 @@ function showCallModal(data) {
 document.getElementById('btnCallPrint').addEventListener('click', function () {
     const regId = this.dataset.registrationId;
     if (!regId) return;
-    const url = '/registration/' + encodeURIComponent(regId) + '/print-pdf';
-    window.open(url, '_blank', 'width=900,height=800,scrollbars=yes');
 
-    // Close the call modal and show a confirmation toast
+    const url = '/registration/' + encodeURIComponent(regId) + '/print-excel';
+    const a = document.createElement('a');
+    a.href = url;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
     const callModal = bootstrap.Modal.getInstance(document.getElementById('callModal'));
     if (callModal) {
         callModal.hide();
     }
-    showDashboardToast('Print ready — use the browser print button on the opened PDF.');
+    showDashboardToast('Excel download started.');
+});
+
+document.getElementById('btnCallPrintHtml').addEventListener('click', function () {
+    const regId = this.dataset.registrationId;
+    if (!regId) return;
+    const url = '/registration/' + encodeURIComponent(regId) + '/print';
+    window.open(url, '_blank', 'width=900,height=800,scrollbars=yes');
+
+    const callModal = bootstrap.Modal.getInstance(document.getElementById('callModal'));
+    if (callModal) {
+        callModal.hide();
+    }
+    showDashboardToast('Print preview opened — use the browser print button.');
 });
 
 /**

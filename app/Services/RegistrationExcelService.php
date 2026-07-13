@@ -46,10 +46,11 @@ class RegistrationExcelService
 
     /**
      * Checkbox mappings: each Registration field's value is matched against
-     * an option, and the corresponding cell is written with a boolean
-     * (true = checked, false = unchecked). The cells in each group should
-     * contain Excel Form Control checkboxes whose "Cell link" points to
-     * the same cell address.
+     * an option, and the corresponding cell is written with a Unicode
+     * glyph (☑ for checked, ☐ for unchecked) using the Calibri font.
+     * This is compatible with MS Office Excel, LibreOffice, Google Sheets,
+     * Numbers, and the Dompdf PDF renderer — no Form Control checkboxes
+     * are required in the template.
      */
     protected array $checkboxMapping = [
         'enrollee_type' => [
@@ -67,6 +68,10 @@ class RegistrationExcelService
             'Female' => 'W9',
         ],
     ];
+
+    private const CHECKBOX_FONT   = 'Calibri';
+    private const CHECKED_GLYPH   = "\u{2611}";   // ☑
+    private const UNCHECKED_GLYPH = "\u{2610}";   // ☐
 
     /**
      * Generate a populated Spreadsheet for the given Registration.
@@ -102,7 +107,11 @@ class RegistrationExcelService
         foreach ($this->checkboxMapping as $field => $options) {
             $value = $values[$field] ?? null;
             foreach ($options as $optionValue => $cellAddress) {
-                $worksheet->setCellValue($cellAddress, $value === $optionValue);
+                $glyph = ($value === $optionValue) ? self::CHECKED_GLYPH : self::UNCHECKED_GLYPH;
+                $worksheet->setCellValue($cellAddress, $glyph);
+                $worksheet->getStyle($cellAddress)
+                    ->getFont()
+                    ->setName(self::CHECKBOX_FONT);
             }
         }
 
