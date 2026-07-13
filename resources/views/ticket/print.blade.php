@@ -5,8 +5,8 @@
     <title>Registration #{{ $registration->id }} - Print</title>
     <style>
         @page {
-            size: A4;
-            margin: 8mm;
+            size: A5 landscape;
+            margin: 5mm;
         }
 
         * { box-sizing: border-box; }
@@ -17,7 +17,7 @@
             margin: 0;
             padding: 0;
             background: #fff;
-            font-size: 11px;
+            font-size: 9px;
             line-height: 1.3;
         }
 
@@ -25,11 +25,11 @@
             display: flex;
             justify-content: flex-end;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .no-print button {
-            padding: 8px 14px;
-            font-size: 13px;
+            padding: 6px 10px;
+            font-size: 11px;
             font-weight: 600;
             border-radius: 4px;
             border: 1px solid #0E0057;
@@ -50,27 +50,27 @@
             width: 100%;
             height: auto;
         }
-        .form-header-image { margin-bottom: 8px; }
-        .form-footer-image { margin-top: 10px; }
+        .form-header-image { margin-bottom: 4px; }
+        .form-footer-image { margin-top: 4px; }
 
         /* ===== Form body ===== */
         .form-page {
             border: 1px solid #0E0057;
-            padding: 10px 14px;
+            padding: 6px 10px;
         }
 
         .top-row {
             display: grid;
             grid-template-columns: 1.1fr 1fr;
-            gap: 14px;
-            margin-bottom: 6px;
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
         .italic-note {
             font-style: italic;
             font-weight: 600;
-            font-size: 11px;
-            margin-bottom: 4px;
+            font-size: 10px;
+            margin-bottom: 2px;
             color: #000;
         }
 
@@ -79,10 +79,10 @@
             display: flex;
             align-items: baseline;
             gap: 4px;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .inline-field > .label {
-            font-size: 10.5px;
+            font-size: 9px;
             font-weight: 700;
             color: #000;
             white-space: nowrap;
@@ -90,8 +90,8 @@
         .inline-field > .value-line {
             flex-grow: 1;
             border-bottom: 1px solid #000;
-            font-size: 12px;
-            min-height: 16px;
+            font-size: 10px;
+            min-height: 14px;
             padding: 0 3px 1px 3px;
         }
         .inline-field.gender > .value-line {
@@ -100,10 +100,10 @@
 
         /* ===== Above-line field (label above, underline below) ===== */
         .field {
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .field > .label {
-            font-size: 9px;
+            font-size: 7.5px;
             font-weight: 700;
             text-transform: uppercase;
             color: #000;
@@ -113,8 +113,8 @@
         }
         .field > .value-line {
             border-bottom: 1px solid #000;
-            font-size: 12px;
-            min-height: 16px;
+            font-size: 10px;
+            min-height: 14px;
             text-align: center;
             padding: 0 3px 4px 3px;
         }
@@ -129,61 +129,61 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-size: 12px;
+            font-size: 10px;
             margin-bottom: 2px;
         }
         .check.indented {
-            margin-left: 14px;
+            margin-left: 12px;
         }
 
         /* ===== Multi-column rows ===== */
         .name-row {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
+            gap: 6px;
             margin: 2px 0 6px 0;
         }
         .row-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
+            gap: 6px;
         }
         .row-srn-app-rank {
             display: grid;
             grid-template-columns: 0.8fr 2fr 0.8fr;
-            gap: 10px;
+            gap: 6px;
             align-items: baseline;
         }
         .address-row {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 6px;
             margin-bottom: 4px;
         }
 
         /* ===== REFERRAL TYPE section (unboxed, open layout) ===== */
         .referral-section > .title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 700;
             text-align: center;
             color: #000;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             letter-spacing: 1px;
         }
         .ref-row-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 4px;
+            gap: 8px;
+            margin-bottom: 2px;
         }
         .ref-row-full {
             display: flex;
             align-items: baseline;
             gap: 4px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .ref-row-full > .label-inline {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 700;
             color: #000;
             white-space: nowrap;
@@ -191,39 +191,40 @@
         .ref-row-full > .value-line {
             flex-grow: 1;
             border-bottom: 1px solid #000;
-            min-height: 16px;
+            min-height: 14px;
             padding: 0 3px 1px 3px;
-            font-size: 12px;
+            font-size: 10px;
         }
 
         /* ===== Emergency contact row ===== */
         .emergency-row {
             display: grid;
             grid-template-columns: 1.4fr 1fr;
-            gap: 16px;
-            margin-bottom: 6px;
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
         /* ===== Course / Schedule section ===== */
         .course-section {
             display: grid;
             grid-template-columns: 1.1fr 1fr;
-            gap: 45px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 4px;
         }
         .course-section .col-title {
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 700;
             text-align: center;
             text-transform: uppercase;
             color: #000;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             letter-spacing: 1px;
         }
         .course-line {
             border-bottom: 1px solid #000;
-            height: 22px;
-            font-size: 12px;
+            height: 16px;
+            font-size: 10px;
+            text-align: center;
             padding: 2px 4px;
         }
 
