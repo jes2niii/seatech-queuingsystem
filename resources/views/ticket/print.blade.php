@@ -61,7 +61,7 @@
 
         .top-row {
             display: grid;
-            grid-template-columns: 1.3fr 1fr;
+            grid-template-columns: 1.1fr 1fr;
             gap: 14px;
             margin-bottom: 6px;
         }
@@ -207,8 +207,8 @@
         /* ===== Course / Schedule section ===== */
         .course-section {
             display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 16px;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 45px;
             margin-bottom: 8px;
         }
         .course-section .col-title {
@@ -425,10 +425,12 @@
 
     </div>
 
-    <script>
+    {{-- <script>
+        // Auto-open the browser print dialog when the page is ready.
+        // Give the layout a moment to render before triggering the print dialog.
         window.addEventListener('load', function () {
             setTimeout(function () { window.print(); }, 300);
         });
-    </script>
+    </script> --}}
 </body>
 </html>

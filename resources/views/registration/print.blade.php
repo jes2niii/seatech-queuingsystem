@@ -425,12 +425,12 @@
 
     </div>
 
-    <script>
+    {{-- <script>
         // Auto-open the browser print dialog when the page is ready.
         // Give the layout a moment to render before triggering the print dialog.
         window.addEventListener('load', function () {
             setTimeout(function () { window.print(); }, 300);
         });
-    </script>
+    </script> --}}
 </body>
 </html>
