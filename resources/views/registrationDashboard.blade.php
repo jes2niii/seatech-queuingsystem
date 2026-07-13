@@ -234,15 +234,12 @@
                                     <td>{{ $reg->contact_no }}</td>
                                     <td>{{ $reg->rank ?? '—' }}</td>
                                     <td>{{ $reg->course ?? '—' }}</td>
-                                    <td style="color: var(--color-text-muted); font-size: 13px;">{{ $reg->created_at->format('M d, Y') }}</td>
+                                    <td style="color: var(--color-text-muted); font-size: 13px;">{{ $reg->created_at->format('F d, Y') }}</td>
                                     <td>
                                         <div style="display: flex; gap: 6px;">
                                             <button class="view-btn" onclick="viewRegistration({{ $reg->id }})">
                                                 <i class="bi bi-eye"></i> View
                                             </button>
-                                            <a class="print-excel-btn" href="{{ route('registration.print.excel', $reg) }}" title="Print Excel">
-                                                <i class="bi bi-file-earmark-excel"></i> Print Excel
-                                            </a>
                                         </div>
                                     </td>
                                 </tr>
@@ -289,9 +286,6 @@
                     <button type="button" class="modal-btn modal-btn-info" id="btnCallPrintHtml" style="display:none;">
                         <i class="bi bi-printer"></i> Print
                     </button>
-                    <button type="button" class="modal-btn modal-btn-info" id="btnCallPrint" style="display:none;">
-                        <i class="bi bi-file-earmark-excel"></i> Print Excel
-                    </button>
                     @if($isRestricted)
                     <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
                         <i class="bi bi-check-lg"></i> Mark as Done
@@ -322,6 +316,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="modal-btn modal-btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="modal-btn modal-btn-info" id="btnViewPrint">
+                    <i class="bi bi-printer"></i> Print
+                </button>
             </div>
         </div>
     </div>

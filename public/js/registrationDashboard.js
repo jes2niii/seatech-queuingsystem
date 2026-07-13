@@ -111,7 +111,7 @@ function showCallModal(data) {
         regInfo.appendChild(buildRegTable('Enrollment Information', [
             ['Enrollee Type', reg.enrollee_type],
             ['Referral Type', referralValue],
-            ['Date Enrolled', reg.enrollment_date],
+            ['Date Enrolled', formatDate(reg.enrollment_date)],
             ['SRN', reg.srn],
             ['Application No.', reg.application_no],
         ]));
@@ -122,7 +122,7 @@ function showCallModal(data) {
             ['Last Name', reg.last_name],
             ['Address', reg.address],
             ['Gender', reg.gender],
-            ['Date of Birth', reg.birthdate],
+            ['Date of Birth', formatDate(reg.birthdate)],
             ['Civil Status', reg.civil_status],
             ['Place of Birth', reg.place_of_birth],
             ['Email', reg.email, 'email'],
@@ -143,18 +143,13 @@ function showCallModal(data) {
         regInfo.appendChild(p);
     }
 
-    // Show or hide the Print buttons depending on whether a registration is linked
-    const printBtn = document.getElementById('btnCallPrint');
+    // Show or hide the Print button depending on whether a registration is linked
     const printHtmlBtn = document.getElementById('btnCallPrintHtml');
     if (reg && reg.id) {
-        printBtn.style.display = '';
         printHtmlBtn.style.display = '';
-        printBtn.dataset.registrationId = reg.id;
         printHtmlBtn.dataset.registrationId = reg.id;
     } else {
-        printBtn.style.display = 'none';
         printHtmlBtn.style.display = 'none';
-        printBtn.dataset.registrationId = '';
         printHtmlBtn.dataset.registrationId = '';
     }
 
@@ -165,26 +160,6 @@ function showCallModal(data) {
     document.getElementById('btnCallDone').dataset.ticketId = ticket.id;
     callModalInstance.show();
 }
-
-document.getElementById('btnCallPrint').addEventListener('click', function () {
-    const regId = this.dataset.registrationId;
-    if (!regId) return;
-
-    const url = '/registration/' + encodeURIComponent(regId) + '/print-excel';
-    const a = document.createElement('a');
-    a.href = url;
-    a.rel = 'noopener';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    const callModal = bootstrap.Modal.getInstance(document.getElementById('callModal'));
-    if (callModal) {
-        callModal.hide();
-    }
-    showDashboardToast('Excel download started.');
-});
 
 document.getElementById('btnCallPrintHtml').addEventListener('click', function () {
     const regId = this.dataset.registrationId;
@@ -215,6 +190,19 @@ function showDashboardToast(message) {
     toast.classList.add('show');
     clearTimeout(showDashboardToast._t);
     showDashboardToast._t = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+/**
+ * Format an ISO 8601 date string (e.g. "2026-07-13T00:00:00.000000Z")
+ * to a human-readable "July 13, 2026" format.
+ * Parses the Y-M-D prefix directly to avoid timezone shift issues.
+ */
+function formatDate(isoString) {
+    if (!isoString) return '—';
+    var parts = isoString.split('T')[0].split('-');
+    var months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+    return months[parseInt(parts[1]) - 1] + ' ' + parseInt(parts[2]) + ', ' + parts[0];
 }
 
 /**
@@ -257,6 +245,26 @@ function buildRegTable(title, rows) {
         } else {
             tdValue.textContent = safeValue;
         }
+
+        // Copy-to-clipboard button
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'call-modal-copy-btn';
+        copyBtn.type = 'button';
+        copyBtn.title = 'Copy to clipboard';
+        copyBtn.innerHTML = '<i class="bi bi-copy"></i>';
+        copyBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            navigator.clipboard.writeText(safeValue).then(function () {
+                copyBtn.innerHTML = '<i class="bi bi-check2"></i>';
+                copyBtn.classList.add('copied');
+                setTimeout(function () {
+                    copyBtn.innerHTML = '<i class="bi bi-copy"></i>';
+                    copyBtn.classList.remove('copied');
+                }, 1500);
+            });
+        });
+        tdValue.appendChild(copyBtn);
+
         tr.appendChild(tdValue);
 
         table.appendChild(tr);
@@ -351,6 +359,8 @@ function viewRegistration(id) {
     const modal = new bootstrap.Modal(document.getElementById('viewRegModal'));
     const body = document.getElementById('viewRegBody');
 
+    document.getElementById('btnViewPrint').dataset.registrationId = id;
+
     body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
     modal.show();
 
@@ -365,7 +375,7 @@ function viewRegistration(id) {
             body.appendChild(buildRegTable('Enrollment Information', [
                 ['Enrollee Type', data.enrollee_type],
                 ['Referral Type', referralValue],
-                ['Date Enrolled', data.enrollment_date],
+                ['Date Enrolled', formatDate(data.enrollment_date)],
                 ['SRN', data.srn],
                 ['Application No.', data.application_no],
             ]));
@@ -376,7 +386,7 @@ function viewRegistration(id) {
                 ['Last Name', data.last_name],
                 ['Address', data.address],
                 ['Gender', data.gender],
-                ['Date of Birth', data.birthdate],
+                ['Date of Birth', formatDate(data.birthdate)],
                 ['Civil Status', data.civil_status],
                 ['Place of Birth', data.place_of_birth],
                 ['Email', data.email, 'email'],
@@ -396,3 +406,9 @@ function viewRegistration(id) {
         });
 }
 
+document.getElementById('btnViewPrint').addEventListener('click', function () {
+    const regId = this.dataset.registrationId;
+    if (!regId) return;
+    const url = '/registration/' + encodeURIComponent(regId) + '/print';
+    window.open(url, '_blank', 'width=900,height=800,scrollbars=yes');
+});

@@ -550,28 +550,6 @@ body {
     background: var(--color-primary-dark);
 }
 
-/* Print Excel button */
-.print-excel-btn {
-    background: #1d6f42;
-    color: #fff;
-    border: none;
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all var(--transition);
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    text-decoration: none;
-}
-
-.print-excel-btn:hover {
-    background: #155a33;
-    color: #fff;
-}
-
 /* MODALS - override Bootstrap */
 .modal-content {
     border: none;
@@ -692,6 +670,32 @@ body {
 .call-modal-reg-table td:last-child {
     color: var(--color-text);
     font-weight: 500;
+}
+
+.call-modal-copy-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 2px 4px;
+    margin-left: 6px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+    vertical-align: middle;
+}
+
+.call-modal-reg-table tr:hover .call-modal-copy-btn {
+    opacity: 1;
+}
+
+.call-modal-copy-btn:hover {
+    color: var(--color-primary);
+}
+
+.call-modal-copy-btn.copied {
+    color: #198754;
+    opacity: 1;
 }
 
 .call-modal-no-reg {
