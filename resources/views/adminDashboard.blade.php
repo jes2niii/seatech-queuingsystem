@@ -108,6 +108,8 @@
                             <select name="usertype" class="form-control" required>
                                 <option value="">-- Select User Type --</option>
                                 <option value="Regular">Regular</option>
+                                <option value="cashier">Cashier</option>
+                                <option value="Certificate">Certificate</option>
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
@@ -262,7 +264,7 @@
                                                 {{ ucfirst($user->usertype) }}
                                             </span>
                                         </td>
-                                        <td>{{ $user->created_at->format('Y-m-d') }}</td>
+                                        <td>{{ $user->created_at->format('F d, Y') }}</td>
                                         <td>
                                             @if($user->id !== Auth::id())
                                                 <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="delete-user-form">

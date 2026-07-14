@@ -48,9 +48,9 @@ class User extends Authenticatable
         ];
     }
      public function servingTicket()
-    {
-         return $this->hasOne(Ticket::class, 'served_by', 'name') 
+     {
+          return $this->hasOne(Ticket::class, 'served_by', 'name')
                 ->where('status', 'Serving')
                 ->latest('id');
-    }
+     }
 }

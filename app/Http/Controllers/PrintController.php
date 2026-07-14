@@ -2,47 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Ticket;
-use Illuminate\Support\Facades\Log;
+use App\Services\PrintService;
+use Illuminate\Http\Request;
 
 class PrintController extends Controller
 {
-    public function printTicket($ticketNo)
+    public function printTicket(Request $request)
     {
-        $ticket = Ticket::where('ticket_no', $ticketNo)->first();
+        $validated = $request->validate([
+            'ticket_no' => 'required|string',
+            'purpose'   => 'required|string',
+        ]);
 
-        if (!$ticket) {
-            return response()->json(['error' => 'Ticket not found'], 404);
+        try {
+            $service = new PrintService();
+            $service->printTicket($validated['ticket_no'], $validated['purpose']);
+
+            return response()->json(['status' => 'ok', 'message' => 'Ticket printed.']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
-
-        $purpose = $ticket->purpose ?? '';
-
-        $text = "
-========================
-       QUEUE TICKET
-========================
-
-Purpose: $purpose
-
-        $ticketNo
-
-Please wait for your turn
-
-========================
-";
-
-        $file = storage_path("app/ticket_$ticketNo.txt");
-        file_put_contents($file, $text);
-
-        $output = null;
-        $resultCode = null;
-        exec("notepad /p \"$file\"", $output, $resultCode);
-
-        if ($resultCode !== 0) {
-            Log::warning("Print exec failed for ticket $ticketNo, exit code: $resultCode");
-        }
-
-        return response()->json(['status' => 'printed']);
     }
 }
