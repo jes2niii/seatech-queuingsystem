@@ -46,6 +46,7 @@ setInterval(() => {
 
 let selectedTicketId = null;
 let callModalInstance = null;
+let lastCallData = null;
 
 
 function submitAction(action) {
@@ -97,6 +98,8 @@ function showCallModal(data) {
     let ticket = data.ticket;
     let reg = data.registration;
 
+    document.getElementById('nowServingDisplay').textContent = ticket.ticket_no;
+
     document.getElementById('callTicketNumber').textContent = ticket.ticket_no;
     document.getElementById('callTicketPurpose').textContent = ticket.purpose;
 
@@ -145,13 +148,20 @@ function showCallModal(data) {
 
     // Show or hide the Print button depending on whether a registration is linked
     const printHtmlBtn = document.getElementById('btnCallPrintHtml');
+    const editBtn = document.getElementById('btnCallEdit');
     if (reg && reg.id) {
         printHtmlBtn.style.display = '';
         printHtmlBtn.dataset.registrationId = reg.id;
+        editBtn.style.display = '';
+        editBtn.dataset.registrationId = reg.id;
     } else {
         printHtmlBtn.style.display = 'none';
         printHtmlBtn.dataset.registrationId = '';
+        editBtn.style.display = 'none';
+        editBtn.dataset.registrationId = '';
     }
+
+    lastCallData = data;
 
     if (!callModalInstance) {
         callModalInstance = new bootstrap.Modal(document.getElementById('callModal'));
@@ -293,6 +303,7 @@ document.getElementById('btnCallDone').addEventListener('click', function () {
         }),
     })
     .then(() => {
+        document.getElementById('nowServingDisplay').textContent = '—';
         callModalInstance.hide();
     })
     .catch(() => {
@@ -411,4 +422,213 @@ document.getElementById('btnViewPrint').addEventListener('click', function () {
     if (!regId) return;
     const url = '/registration/' + encodeURIComponent(regId) + '/print';
     window.open(url, '_blank', 'width=900,height=800,scrollbars=yes');
+});
+
+// ======================= INLINE EDIT IN CALL MODAL =======================
+
+function enterEditMode() {
+    if (!lastCallData || !lastCallData.registration) return;
+    const reg = lastCallData.registration;
+
+    const container = document.getElementById('callRegistrationInfo');
+    container.innerHTML = '';
+
+    const frag = document.createDocumentFragment();
+
+    frag.appendChild(buildEditableRegTable('Enrollment Information', [
+        ['enrollee_type', 'Enrollee Type', reg.enrollee_type, 'select', ['New Enrollee', 'Old Enrollee']],
+        ['referral_type', 'Referral Type', reg.referral_type, 'select', ['Onsite/Walk-in', 'Online Enrollment', 'Marketing', 'Company']],
+        ['referral_source', 'Referral Source', reg.referral_source, 'text'],
+        ['enrollment_date', 'Date Enrolled', reg.enrollment_date, 'date'],
+        ['srn', 'SRN', reg.srn, 'text'],
+        ['application_no', 'Application No.', reg.application_no, 'text'],
+    ]));
+
+    frag.appendChild(buildEditableRegTable('Personal Information', [
+        ['first_name', 'First Name', reg.first_name, 'text'],
+        ['middle_name', 'Middle Name', reg.middle_name, 'text'],
+        ['last_name', 'Last Name', reg.last_name, 'text'],
+        ['address', 'Address', reg.address, 'text'],
+        ['gender', 'Gender', reg.gender, 'select', ['Male', 'Female']],
+        ['birthdate', 'Date of Birth', reg.birthdate, 'date'],
+        ['civil_status', 'Civil Status', reg.civil_status, 'select', ['Single', 'Married', 'Widowed', 'Separated']],
+        ['place_of_birth', 'Place of Birth', reg.place_of_birth, 'text'],
+        ['email', 'Email', reg.email, 'email'],
+        ['contact_no', 'Contact No.', reg.contact_no, 'text'],
+        ['rank', 'Rank', reg.rank, 'text'],
+        ['course', 'Course', reg.course, 'text'],
+    ]));
+
+    frag.appendChild(buildEditableRegTable('Emergency Contact', [
+        ['contact_person', 'Contact Person', reg.contact_person, 'text'],
+        ['relationship', 'Relationship', reg.relationship, 'text'],
+        ['contact_mobile', 'Contact Number', reg.contact_mobile, 'text'],
+    ]));
+
+    container.appendChild(frag);
+
+    document.getElementById('readModeButtons').style.display = 'none';
+    document.getElementById('editModeButtons').style.display = '';
+}
+
+function buildEditableRegTable(title, rows) {
+    const frag = document.createDocumentFragment();
+
+    const h6 = document.createElement('h6');
+    h6.className = 'reg-section-label';
+    h6.textContent = title;
+    frag.appendChild(h6);
+
+    const table = document.createElement('table');
+    table.className = 'call-modal-reg-table call-modal-edit-table';
+
+    rows.forEach(([name, label, value, type, options]) => {
+        const tr = document.createElement('tr');
+
+        const tdLabel = document.createElement('td');
+        tdLabel.textContent = label;
+        tr.appendChild(tdLabel);
+
+        const tdValue = document.createElement('td');
+
+        let input;
+        if (type === 'select' && options) {
+            input = document.createElement('select');
+            input.name = name;
+            input.className = 'call-modal-edit-input';
+            const emptyOpt = document.createElement('option');
+            emptyOpt.value = '';
+            emptyOpt.textContent = '—';
+            input.appendChild(emptyOpt);
+            options.forEach(optText => {
+                const opt = document.createElement('option');
+                opt.value = optText;
+                opt.textContent = optText;
+                input.appendChild(opt);
+            });
+        } else if (type === 'date') {
+            input = document.createElement('input');
+            input.type = 'date';
+            input.name = name;
+            input.className = 'call-modal-edit-input';
+        } else {
+            input = document.createElement('input');
+            input.type = type;
+            input.name = name;
+            input.className = 'call-modal-edit-input';
+            if (type === 'email') input.placeholder = 'name@example.com';
+            if (name === 'contact_no' || name === 'contact_mobile') input.placeholder = '0912-345-6789';
+        }
+
+        if (value !== null && value !== undefined) {
+            if (type === 'date' && value) {
+                input.value = String(value).split('T')[0];
+            } else {
+                input.value = String(value);
+            }
+        }
+
+        tdValue.appendChild(input);
+        tr.appendChild(tdValue);
+        table.appendChild(tr);
+    });
+
+    frag.appendChild(table);
+    return frag;
+}
+
+function exitEditMode() {
+    if (!lastCallData || !lastCallData.registration) return;
+    const reg = lastCallData.registration;
+
+    const container = document.getElementById('callRegistrationInfo');
+    container.innerHTML = '';
+
+    let referralValue = reg.referral_type || '—';
+    if (reg.referral_source) {
+        referralValue += ' — ' + reg.referral_source;
+    }
+
+    container.appendChild(buildRegTable('Enrollment Information', [
+        ['Enrollee Type', reg.enrollee_type],
+        ['Referral Type', referralValue],
+        ['Date Enrolled', formatDate(reg.enrollment_date)],
+        ['SRN', reg.srn],
+        ['Application No.', reg.application_no],
+    ]));
+
+    container.appendChild(buildRegTable('Personal Information', [
+        ['First Name', reg.first_name],
+        ['Middle Name', reg.middle_name],
+        ['Last Name', reg.last_name],
+        ['Address', reg.address],
+        ['Gender', reg.gender],
+        ['Date of Birth', formatDate(reg.birthdate)],
+        ['Civil Status', reg.civil_status],
+        ['Place of Birth', reg.place_of_birth],
+        ['Email', reg.email, 'email'],
+        ['Contact No.', reg.contact_no, 'phone'],
+        ['Rank', reg.rank],
+        ['Course', reg.course],
+    ]));
+
+    container.appendChild(buildRegTable('Emergency Contact', [
+        ['Contact Person', reg.contact_person],
+        ['Relationship', reg.relationship],
+        ['Contact Number', reg.contact_mobile, 'phone'],
+    ]));
+
+    document.getElementById('readModeButtons').style.display = '';
+    document.getElementById('editModeButtons').style.display = 'none';
+}
+
+// Edit button: enter inline edit mode
+document.getElementById('btnCallEdit').addEventListener('click', enterEditMode);
+
+// Cancel edit: revert to readonly
+document.getElementById('btnCallCancelEdit').addEventListener('click', exitEditMode);
+
+// Save: collect values, PUT to server
+document.getElementById('btnCallSave').addEventListener('click', function () {
+    if (!lastCallData || !lastCallData.registration) return;
+    const regId = lastCallData.registration.id;
+
+    const inputs = document.querySelectorAll('#callRegistrationInfo .call-modal-edit-input');
+    const data = {};
+    inputs.forEach(el => {
+        data[el.name] = el.value;
+    });
+
+    const token = document.querySelector('input[name="_token"]').value;
+
+    fetch('/registration/' + regId, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json().then(body => ({ status: res.status, body })))
+    .then(result => {
+        if (result.status === 422) {
+            const errors = result.body.errors;
+            let msg = '';
+            for (const key in errors) {
+                msg += errors[key].join('\n') + '\n';
+            }
+            alert('Validation error:\n' + msg);
+            return;
+        }
+        if (result.status >= 400) {
+            alert(result.body.message || 'Update failed.');
+            return;
+        }
+
+        lastCallData.registration = result.body.registration;
+        exitEditMode();
+        showDashboardToast('Registration updated successfully!');
+    })
+    .catch(err => alert('Error: ' + err.message));
 });

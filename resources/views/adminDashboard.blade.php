@@ -392,6 +392,7 @@
         }
 
         function showConfirm(message, onConfirm, title) {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
             document.getElementById('confirmModalMsg').textContent = message;
             document.getElementById('confirmModalTitle').textContent = title || 'Confirm';
             window.confirmModalAction = function() { closeModal('confirmModal'); if (onConfirm) onConfirm(); };
@@ -406,6 +407,12 @@
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
             document.body.style.overflow = '';
+            if (id === 'previewModal') {
+                const player = document.getElementById('videoPlayer');
+                player.pause();
+                player.removeAttribute('src');
+                player.load();
+            }
         }
 
         function previewVideo(src, name) {

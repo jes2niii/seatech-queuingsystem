@@ -1,5 +1,6 @@
 let currentTicket = null;
 let pendingRegistrationId = null;
+let isGenerating = false;
 
 function showToast(message, type) {
     const toast = document.getElementById('toast');
@@ -36,12 +37,13 @@ function closePopup() {
 }
 
 function confirmTicket() {
-    if (!currentTicket) return;
+    if (!currentTicket || isGenerating) return;
 
+    isGenerating = true;
     const body = { purpose: currentTicket.purpose };
-    if (pendingRegistrationId) {
-        body.registration_id = pendingRegistrationId;
-        pendingRegistrationId = null;
+    const regId = pendingRegistrationId;
+    if (regId) {
+        body.registration_id = regId;
     }
 
     fetch('/ticket/generate', {
@@ -64,6 +66,10 @@ function confirmTicket() {
             return;
         }
 
+        if (regId) {
+            pendingRegistrationId = null;
+        }
+
         closePopup();
 
         if (window.KioskPrint) {
@@ -78,7 +84,10 @@ function confirmTicket() {
             showToast('Ticket printed successfully!', 'success');
         }
     })
-    .catch(err => showToast('Print failed: ' + err.message, 'error'));
+    .catch(err => showToast('Print failed: ' + err.message, 'error'))
+    .finally(() => {
+        isGenerating = false;
+    });
 }
 
 function openRegistrationForm() {

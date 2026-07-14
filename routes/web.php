@@ -39,6 +39,7 @@ require __DIR__.'/auth.php';
 Route::post('/ticket/generate', [TicketController::class, 'generate']);
 Route::post('/ticket/preview', [TicketController::class, 'preview']);
 Route::post('/registration/store', [RegistrationController::class, 'store']);
+Route::put('/registration/{registration}', [RegistrationController::class, 'update'])->middleware('auth');
 Route::get('/registration/{registration}', [RegistrationController::class, 'show'])
     ->middleware('auth');
 Route::get('/registration/{registration}/print-excel',

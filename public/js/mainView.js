@@ -44,30 +44,63 @@ function triggerBlink(cell) {
 setInterval(refreshServing, 2000);
 refreshServing();
 
-// Video rotation
+// Video rotation (dual-player preload)
 let index = 0;
-const player = document.getElementById('tvPlayer');
-if (!player) { videos = []; }
+const player1 = document.getElementById('tvPlayer');
+const player2 = document.getElementById('tvPlayer2');
+if (!player1 || !player2) { videos = []; }
+
+let activePlayer = player1;
+let standbyPlayer = player2;
 
 function loadNext() {
-    if (videos.length === 0) return;
-    if (!player) return;
-    player.src = videos[index];
-    player.load();
+    if (videos.length === 0 || !player1 || !player2) return;
+    standbyPlayer.src = videos[index];
+    standbyPlayer.load();
     index = (index + 1) % videos.length;
 }
 
 function playNext() {
-    if (videos.length === 0) return;
-    if (!player) return;
-    player.play().catch(err => console.log("Playback error:", err));
+    if (videos.length === 0 || !player1 || !player2) return;
+    activePlayer.volume = 0.25;
+    activePlayer.play().catch(() => {
+        activePlayer.addEventListener('canplay', function retry() {
+            activePlayer.removeEventListener('canplay', retry);
+            activePlayer.play().catch(() => {});
+        }, { once: true });
+        activePlayer.load();
+    });
 }
 
-loadNext();
+function swapPlayers() {
+    if (videos.length === 0 || !player1 || !player2) return;
 
-if (player) {
-    player.addEventListener('ended', () => {
-        loadNext();
-        playNext();
-    });
+    [activePlayer, standbyPlayer] = [standbyPlayer, activePlayer];
+
+    activePlayer.classList.remove('tv-video-hidden');
+    standbyPlayer.classList.add('tv-video-hidden');
+
+    standbyPlayer.pause();
+    standbyPlayer.currentTime = 0;
+    standbyPlayer.muted = true;
+
+    playNext();
+    loadNext();
+}
+
+if (player1 && player2) {
+    player1.addEventListener('ended', swapPlayers);
+    player2.addEventListener('ended', swapPlayers);
+
+    loadNext();
+    standbyPlayer.addEventListener('canplay', function startPlaying() {
+        standbyPlayer.removeEventListener('canplay', startPlaying);
+        swapPlayers();
+    }, { once: true });
+    setTimeout(function () {
+        standbyPlayer.removeEventListener('canplay', startPlaying);
+        if (activePlayer === player1 && standbyPlayer === player2) {
+            swapPlayers();
+        }
+    }, 3000);
 }

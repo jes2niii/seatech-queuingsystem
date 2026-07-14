@@ -74,7 +74,7 @@
 
             <div class="dash-header-cell dash-now-serving">
                 <p class="dash-now-serving-label">Now Serving</p>
-                <p class="ticket-number-display">{{ $nowServing?->ticket_no ?? '—' }}</p>
+                <p class="ticket-number-display" id="nowServingDisplay">{{ $nowServing?->ticket_no ?? '—' }}</p>
             </div>
 
             <div class="dash-header-cell dash-stats">
@@ -283,18 +283,31 @@
                     <i class="bi bi-x-lg"></i> Close
                 </button>
                 <div>
-                    <button type="button" class="modal-btn modal-btn-info" id="btnCallPrintHtml" style="display:none;">
-                        <i class="bi bi-printer"></i> Print
-                    </button>
-                    @if($isRestricted)
-                    <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
-                        <i class="bi bi-check-lg"></i> Mark as Done
-                    </button>
-                    @else
-                    <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
-                        <i class="bi bi-cash-coin"></i> Submit for Payment
-                    </button>
-                    @endif
+                    <div id="readModeButtons">
+                        <button type="button" class="modal-btn modal-btn-info" id="btnCallPrintHtml" style="display:none;">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button type="button" class="modal-btn modal-btn-warning" id="btnCallEdit" style="display:none;">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </button>
+                        @if($isRestricted)
+                        <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
+                            <i class="bi bi-check-lg"></i> Mark as Done
+                        </button>
+                        @else
+                        <button type="button" class="modal-btn modal-btn-success" id="btnCallDone">
+                            <i class="bi bi-cash-coin"></i> Submit for Payment
+                        </button>
+                        @endif
+                    </div>
+                    <div id="editModeButtons" style="display:none;">
+                        <button type="button" class="modal-btn modal-btn-success" id="btnCallSave">
+                            <i class="bi bi-check-lg"></i> Save Changes
+                        </button>
+                        <button type="button" class="modal-btn modal-btn-secondary" id="btnCallCancelEdit">
+                            <i class="bi bi-x-lg"></i> Cancel
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -29,7 +29,10 @@
                 </div>
                 <div class="tv-panel-body">
                     @if($videos->isNotEmpty())
-                        <video id="tvPlayer" class="tv-video" playsinline preload="auto">
+                        <video id="tvPlayer" class="tv-video" playsinline preload="auto" muted>
+                            Your browser does not support the video tag.
+                        </video>
+                        <video id="tvPlayer2" class="tv-video tv-video-hidden" playsinline preload="auto" muted>
                             Your browser does not support the video tag.
                         </video>
                     @else
@@ -90,6 +93,7 @@
         const maxPlays = 3;
         const audio = document.getElementById('tvSound');
         const tvPlayer = document.getElementById("tvPlayer");
+        const tvPlayer2 = document.getElementById("tvPlayer2");
 
         document.addEventListener('click', function unlockAll() {
             if (audio) {
@@ -100,7 +104,11 @@
             }
             if (tvPlayer) {
                 tvPlayer.volume = 0.25;
-                tvPlayer.play().catch(() => {});
+                tvPlayer.muted = false;
+            }
+            if (tvPlayer2) {
+                tvPlayer2.volume = 0.25;
+                tvPlayer2.muted = false;
             }
             document.removeEventListener('click', unlockAll);
         });

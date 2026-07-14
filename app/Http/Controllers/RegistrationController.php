@@ -53,4 +53,44 @@ class RegistrationController extends Controller
     {
         return response()->json($registration);
     }
+
+    public function update(Request $request, Registration $registration)
+    {
+        $validated = $request->validate([
+            'enrollee_type'    => 'nullable|string|max:50',
+            'referral_type'    => 'nullable|string|max:50',
+            'referral_source'  => 'nullable|string|max:255',
+            'enrollment_date'  => 'nullable|date',
+            'first_name'       => 'required|string|max:255',
+            'middle_name'      => 'nullable|string|max:255',
+            'last_name'        => 'required|string|max:255',
+            'srn'              => 'nullable|string|max:50',
+            'application_no'   => 'nullable|string|max:50',
+            'address'          => 'nullable|string',
+            'gender'           => 'nullable|string|max:50',
+            'birthdate'        => 'nullable|date',
+            'civil_status'     => 'nullable|string|max:50',
+            'place_of_birth'   => 'nullable|string|max:255',
+            'email'            => 'required|email|max:255',
+            'contact_no'       => ['required', 'string', 'max:50', 'regex:/^[0-9+\-\s()]+$/'],
+            'rank'             => 'nullable|string|max:100',
+            'course'           => 'nullable|string|max:100',
+            'contact_person'   => 'nullable|string|max:255',
+            'relationship'     => 'nullable|string|max:100',
+            'contact_mobile'   => ['nullable', 'string', 'max:50', 'regex:/^[0-9+\-\s()]+$/'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            if ($value === '' || $value === null) {
+                $validated[$key] = null;
+            }
+        }
+
+        $registration->update($validated);
+
+        return response()->json([
+            'message' => 'Registration updated successfully!',
+            'registration' => $registration->fresh(),
+        ]);
+    }
 }

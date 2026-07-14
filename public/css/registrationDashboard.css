@@ -751,6 +751,16 @@ body {
     background: #1d4ed8;
 }
 
+.modal-btn-warning {
+    background: var(--color-accent);
+    color: var(--color-primary);
+    margin-right: 8px;
+}
+
+.modal-btn-warning:hover {
+    background: var(--color-accent-dark);
+}
+
 /* Global flash messages (e.g., from server back()->with('error', ...)) */
 .global-flash {
     position: fixed;
@@ -799,4 +809,120 @@ body {
 .dashboard-toast.show {
     opacity: 1;
     transform: translateX(0);
+}
+
+/* EDIT REGISTRATION MODAL FORM */
+.req {
+    color: var(--color-danger);
+}
+
+.mt-1 {
+    margin-top: 12px;
+}
+
+.reg-radio-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 38px;
+}
+
+.reg-referral-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.reg-referral-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.reg-referral-pill:hover {
+    border-color: var(--color-primary);
+}
+
+.reg-referral-pill:has(input:checked) {
+    border-color: var(--color-primary);
+    background: rgba(14, 0, 87, 0.06);
+}
+
+.reg-referral-text {
+    width: 120px;
+    margin-left: 4px;
+    font-size: 13px;
+}
+
+#editRegForm .form-label {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+#editRegForm .form-control,
+#editRegForm .form-select {
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: border-color var(--transition);
+}
+
+#editRegForm .form-control:focus,
+#editRegForm .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(14, 0, 87, 0.1);
+}
+
+#editRegForm .reg-section-label {
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    border-bottom: 2px solid var(--color-accent);
+    padding-bottom: 6px;
+    margin: 20px 0 12px 0;
+}
+
+/* INLINE EDIT TABLE */
+.call-modal-edit-table td:last-child {
+    padding: 6px 8px;
+}
+
+.call-modal-edit-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--color-text);
+    background: var(--color-bg-card);
+    transition: border-color var(--transition);
+}
+
+.call-modal-edit-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(14, 0, 87, 0.1);
+}
+
+.call-modal-edit-input[type="date"] {
+    font-family: inherit;
+}
+
+#btnCallSave {
+    margin-right: 8px;
 }
